@@ -1,0 +1,7 @@
+# OsX
+.DS_Store
+
+# drawio backup file
+*.drawio.bkp
+*.drawio.dtmp
+
