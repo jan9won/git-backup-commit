@@ -153,3 +153,5 @@ check_alias_duplicate(){
 check_alias_duplicate
 printf "Writing to git config : alias.$ALIAS_NAME\n"
 git config --global "alias.$ALIAS_NAME" "!$SYMLINK_NAME"
+
+printf "Now you can use `git $ALIAS_NAME` to backup"
