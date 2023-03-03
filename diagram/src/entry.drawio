@@ -1,11 +1,11 @@
 <mxfile host="65bd71144e" pages="3">
     <diagram id="0U89uGUqd00NW37p6G_T" name="command-entry">
-        <mxGraphModel dx="-458" dy="1474" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="247" dy="1962" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
-                <mxCell id="o8BamvyFfTVfImf22ajw-2" value="&lt;font style=&quot;font-size: 24px;&quot;&gt;Command Entry Handling&lt;/font&gt;" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fontSize=24;" parent="1" vertex="1">
-                    <mxGeometry x="890" y="-1060" width="1000" height="1100" as="geometry"/>
+                <mxCell id="o8BamvyFfTVfImf22ajw-2" value="&lt;span style=&quot;color: rgb(240, 240, 240); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(24, 20, 29); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;argument parsing&lt;/span&gt;" style="swimlane;whiteSpace=wrap;html=1;startSize=40;fontSize=24;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="-1040" width="1160" height="680" as="geometry"/>
                 </mxCell>
                 <mxCell id="o8BamvyFfTVfImf22ajw-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-4" target="o8BamvyFfTVfImf22ajw-8" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -13,18 +13,16 @@
                 <mxCell id="o8BamvyFfTVfImf22ajw-4" value="entry.sh" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
                     <mxGeometry x="40" y="180" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-8" target="o8BamvyFfTVfImf22ajw-13" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="100" y="380" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-6" value="yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="o8BamvyFfTVfImf22ajw-5" vertex="1" connectable="0">
-                    <mxGeometry x="0.0091" y="1" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
                 <mxCell id="o8BamvyFfTVfImf22ajw-7" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-8" target="o8BamvyFfTVfImf22ajw-9" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-8" target="81">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="82">
+                    <mxGeometry x="-0.2165" y="-1" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="o8BamvyFfTVfImf22ajw-8" value="Check if we're inside a git repository" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
                     <mxGeometry x="40" y="280" width="120" height="60" as="geometry"/>
@@ -32,150 +30,117 @@
                 <mxCell id="o8BamvyFfTVfImf22ajw-9" value="exit" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
                     <mxGeometry x="200" y="280" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-13" target="o8BamvyFfTVfImf22ajw-22" edge="1">
+                <mxCell id="o8BamvyFfTVfImf22ajw-34" value="push" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="200" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="o8BamvyFfTVfImf22ajw-38" value="fetch" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="360" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="o8BamvyFfTVfImf22ajw-40" value="restore" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="840" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="o8BamvyFfTVfImf22ajw-42" value="prune" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="1000" y="480.27" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="o8BamvyFfTVfImf22ajw-44" value="ls" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="680" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="o8BamvyFfTVfImf22ajw-46" value="create" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="520" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" style="edgeStyle=none;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-47" target="o8BamvyFfTVfImf22ajw-4">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-11" value="yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="o8BamvyFfTVfImf22ajw-10" vertex="1" connectable="0">
+                <mxCell id="o8BamvyFfTVfImf22ajw-47" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;git backup [...args]&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=default;labelBackgroundColor=none;fontColor=default;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
+                    <mxGeometry x="40" y="80" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="52" value="no" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="2">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="500" y="579.9299999999998" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="660" y="559.93"/>
+                            <mxPoint x="500" y="559.93"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="83" value="" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="91">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="100" y="480.0000000000001" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="97" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-34">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="98" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-38">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-46">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-44">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-40">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" style="edgeStyle=orthogonalEdgeStyle;html=1;" edge="1" parent="o8BamvyFfTVfImf22ajw-2" source="81" target="o8BamvyFfTVfImf22ajw-42">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" value="what is the most significant argument?" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="o8BamvyFfTVfImf22ajw-2">
+                    <mxGeometry x="40" y="380" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="(no argument)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="o8BamvyFfTVfImf22ajw-2">
+                    <mxGeometry x="40" y="480" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="has &quot;--help&quot; option?" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="o8BamvyFfTVfImf22ajw-2">
+                    <mxGeometry x="40" y="580" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="65" value="remote check" style="swimlane;whiteSpace=wrap;html=1;startSize=40;" vertex="1" parent="1">
+                    <mxGeometry x="880" y="-190" width="680" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="is remote-name set in config?" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="40" y="79.99999999999999" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="is the remote accessible?&lt;br&gt;(ls-remote)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="40" y="179.99999999999997" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" edge="1" parent="65" source="56" target="58">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="54" value="yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" vertex="1" connectable="0" parent="53">
                     <mxGeometry x="-0.0778" y="-3" relative="1" as="geometry">
                         <mxPoint as="offset"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-12" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-13" target="o8BamvyFfTVfImf22ajw-26" edge="1">
+                <mxCell id="60" value="Let user choose between existing remotes" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="200" y="79.99999999999999" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" value="no" style="edgeStyle=none;html=1;" edge="1" parent="65" source="56" target="60">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-13" value="Is remote for backup set in local config file?" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="390" width="120" height="60" as="geometry"/>
+                <mxCell id="61" value="Add chosen remote name to local config file" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="520" y="79.99999999999999" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-14" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-15" target="o8BamvyFfTVfImf22ajw-36" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="100" y="790" as="targetPoint"/>
-                        <Array as="points"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-15" value="Is remote's URL valid? (ls-remote)" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="690" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-16" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-18" target="o8BamvyFfTVfImf22ajw-15" edge="1">
+                <mxCell id="62" value="yes" style="edgeStyle=orthogonalEdgeStyle;html=1;rounded=0;" edge="1" parent="65" source="63" target="61">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-17" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-18" target="o8BamvyFfTVfImf22ajw-28" edge="1">
+                <mxCell id="63" value="does remote-name an actually existing remote in repo?" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="360" y="79.99999999999999" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" style="edgeStyle=none;html=1;" edge="1" parent="65" source="60" target="63">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-18" value="Is remote's URL's valid? (ls-remote)" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="590" width="120" height="60" as="geometry"/>
+                <mxCell id="64" value="exit" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="65">
+                    <mxGeometry x="200" y="179.99999999999997" width="120" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-22" target="o8BamvyFfTVfImf22ajw-18" edge="1">
+                <mxCell id="57" value="no" style="edgeStyle=none;html=1;" edge="1" parent="65" source="58" target="64">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-20" value="yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="o8BamvyFfTVfImf22ajw-19" vertex="1" connectable="0">
-                    <mxGeometry x="-0.0407" y="-1" relative="1" as="geometry">
-                        <mxPoint as="offset"/>
-                    </mxGeometry>
+                <mxCell id="67" value="help" style="swimlane;whiteSpace=wrap;html=1;startSize=40;" vertex="1" parent="1">
+                    <mxGeometry x="1600" y="-190" width="680" height="280" as="geometry"/>
                 </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-21" value="no" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-22" target="o8BamvyFfTVfImf22ajw-26" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="200" y="520" as="targetPoint"/>
-                        <Array as="points">
-                            <mxPoint x="260" y="510"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-22" value="Does this remote actually exists?" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="490" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-26" target="o8BamvyFfTVfImf22ajw-30" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-26" target="o8BamvyFfTVfImf22ajw-33" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="260" y="370"/>
-                            <mxPoint x="580" y="370"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-25" value="no remotes exists" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" parent="o8BamvyFfTVfImf22ajw-24" vertex="1" connectable="0">
-                    <mxGeometry x="-0.889" y="1" relative="1" as="geometry">
-                        <mxPoint x="-1" y="1" as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-26" value="Let user choose between existing remotes" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="200" y="390" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-28" target="o8BamvyFfTVfImf22ajw-32" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-28" value="Let user enter new URL" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="200" y="590" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-30" target="o8BamvyFfTVfImf22ajw-22" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="420" y="530"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-30" value="Add chosen remote name to local config file" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="360" y="390" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-32" target="o8BamvyFfTVfImf22ajw-18" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="420" y="570"/>
-                            <mxPoint x="100" y="570"/>
-                        </Array>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-32" value="Set it as the remote's URL" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="360" y="590" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-33" value="exit" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="520" y="390" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-34" value="push" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="360" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-46" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-36" value="parse [command]" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="790" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-34" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="100" y="570" as="sourcePoint"/>
-                        <mxPoint x="100" y="610" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-38" value="pull" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="520" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-38" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-40" value="restore" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="680" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-40" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-42" value="prune" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="840" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-42" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-44" value="ls" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="200" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;" parent="o8BamvyFfTVfImf22ajw-2" source="o8BamvyFfTVfImf22ajw-36" target="o8BamvyFfTVfImf22ajw-44" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-46" value="create" style="rounded=1;whiteSpace=wrap;html=1;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="890" width="120" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="o8BamvyFfTVfImf22ajw-47" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;git backup [command] [option]&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=default;labelBackgroundColor=none;fontColor=default;" parent="o8BamvyFfTVfImf22ajw-2" vertex="1">
-                    <mxGeometry x="40" y="80" width="120" height="60" as="geometry"/>
+                <mxCell id="68" value="args" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="67">
+                    <mxGeometry x="40" y="79.99999999999999" width="120" height="60" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
