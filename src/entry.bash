@@ -102,3 +102,19 @@ esac
 
 # [global option]
 
+
+while getopts $OPTSTRING opt
+do
+	case $opt in
+		push)
+			$SCRIPT_PATH/features/push.bash;;
+		fetch) 
+			$SCRIPT_PATH/features/fetch.bash;; 
+		restore) 
+			$SCRIPT_PATH/features/restore.bash;; 
+		prune) 
+			$SCRIPT_PATH/features/prune.bash;; 
+		*) 
+			$SCRIPT_PATH/features/usage.bash;; 
+	esac 
+done

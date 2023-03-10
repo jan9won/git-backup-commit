@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!/usr/bin/env bash
 
 current_branch_name=$(git branch --show-current); 
 backup_branch_name=backup-$(date +%s); 
