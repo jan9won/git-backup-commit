@@ -20,37 +20,6 @@ if [[ ! $IS_GIT_REPO = "true" ]]; then
 fi
 
 # --------------------------------------------------------------------------- #
-# handle "-h|--help" option
-# --------------------------------------------------------------------------- #
-
-# Generate Optstring and Replace Long Options
-OPT_RESULT=($("$SCRIPT_PATH/utils/generate-optstring.bash" "
-	-h, --help, false
-" $@))
-
-OPTSTRING=${OPT_RESULT[0]}
-OPT_RESULT_ARRAY=("${OPT_RESULT[@]:1}")
-
-# set replaced arguments
-set -- "${OPT_RESULT_ARRAY[@]}"
-
-# handle -h option, or remove all other options
-while getopts ":$OPTSTRING" opt
-do
-	case $opt in
-		h)
-			shift
-			$SCRIPT_PATH/features/usage.bash $@
-			exit 0
-			;;
-		?)
-			echo "unknown flag : $1"
-			shift
-			;;
-	esac 
-done
-
-# --------------------------------------------------------------------------- #
 # prepare branch prefix
 # --------------------------------------------------------------------------- #
 
@@ -61,33 +30,59 @@ if [[ BACKUP_BRANCH_WAS_SET = 3 ]]; then
 fi
 
 # --------------------------------------------------------------------------- #
-# run main commands with the most significant argument
+# organize arguments
 # --------------------------------------------------------------------------- #
 
-case $1 in
+ORG_OPT_RESULT=$("$SCRIPT_PATH/utils/organize-arguments.bash" "
+	-h, --help, false
+" $@)
+
+IFS_DEFAULT=$IFS
+IFS=$'\n'
+ORG_OPT_RESULT=($(echo -e "${ORG_OPT_RESULT[@]}"))
+IFS=$IFS_DEFAULT
+
+OPTSTRING=$($SCRIPT_PATH/utils/trim-whitespace.bash "${ORG_OPT_RESULT[0]}")
+USEFUL_OPTS=($($SCRIPT_PATH/utils/trim-whitespace.bash "${ORG_OPT_RESULT[1]}"))
+REST_OPTS=($($SCRIPT_PATH/utils/trim-whitespace.bash "${ORG_OPT_RESULT[2]}"))
+REST_ARGS=($($SCRIPT_PATH/utils/trim-whitespace.bash "${ORG_OPT_RESULT[3]}"))
+
+
+# --------------------------------------------------------------------------- #
+# handle -h option
+# --------------------------------------------------------------------------- #
+if [[ " ${USEFUL_OPTS[*]} " =~ " -h " ]]; then
+	$SCRIPT_PATH/features/usage.bash "${REST_ARGS[@]}"
+	exit 0
+fi
+
+# --------------------------------------------------------------------------- #
+# run main commands with the most significant argument
+# --------------------------------------------------------------------------- #
+case "${REST_ARGS[0]}" in
 	"")
 		$SCRIPT_PATH/features/usage.bash
 		;;
 	create)
-		$SCRIPT_PATH/features/create.bash $@
+		$SCRIPT_PATH/features/create.bash "$@"
 		;;
 	ls)
-		$SCRIPT_PATH/features/ls.bash $@
+		$SCRIPT_PATH/features/ls.bash "$@"
 		;;
 	push)
-		$SCRIPT_PATH/features/push.bash $@
+		$SCRIPT_PATH/features/push.bash "$@"
 		;;
 	fetch)
-		$SCRIPT_PATH/features/fetch.bash $@
+		$SCRIPT_PATH/features/fetch.bash "$@"
 		;;
 	restore)
-		$SCRIPT_PATH/features/restore.bash $@
+		$SCRIPT_PATH/features/restore.bash "$@"
 		;;
 	delete)
-		$SCRIPT_PATH/features/delete.bash $@
+		$SCRIPT_PATH/features/delete.bash "$@"
 		;;
 	*)
-		echo "bad command $1"
+		echo "bad command ${REST_ARGS[0]}"
 		$SCRIPT_PATH/features/usage.bash
 		;;
 esac

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-echo $@
+echo "push.bash: $@"
 
 # current_branch_name=$(git branch --show-current); 
 # backup_branch_name=backup-$(date +%s); 

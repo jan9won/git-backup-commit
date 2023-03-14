@@ -18,7 +18,7 @@ if git status --porcelain | grep -q '^.\{2\}'; then
 fi
 
 if [ $HAS_CHANGES -eq 1 ]; then
-  echo "There are no changes to add or commit"
+  echo "There are no changes to add or commit. Use --force to create empty one."
 	exit 0
 fi
 
