@@ -1,32 +1,82 @@
 #!/usr/bin/env bash
 
-empty="
-\n	usage
-\n\t	git backup <command> [flags]
-\n	command
-\n\t	create		\t create new backup branch, commit everything and restore working directory
-\n\t	delete		\t delete given backup branch and its commit
-\n\t	restore		\t restore working directory from given backup branch
-\n\t	ls				\t list all backup branches
-\n\t	push			\t push backup branches to configured backup remote
-\n\t	fetch			\t fetch backup branches to configured backup remote
-\n	flags
-\n\t	--help : print help for a given command
+# ---------------------------------------------------------------------------- #
+# Top level help
+# ---------------------------------------------------------------------------- #
+
+EMPTY="
+usage           git wip [--help] <command> 
+
+<command>
+create          Create new wip commit, restore working and staging area
+delete          Delete given wip commit
+restore         Restore working directory from given wip commit
+ls              List all wip commits
+push            Push wip commits to remote
+fetch           Fetch wip commits to remote
+
 "
 
-create="
-\n	usage
-\n\t	git backup create
-\n	description
-\n\t	create new backup branch, commit everything and restore working directory
+# ---------------------------------------------------------------------------- #
+# create
+# ---------------------------------------------------------------------------- #
+
+CREATE="
+Usage           git wip create [flags]
+
+Description     1. create new backup branch
+                2. commit everything
+                3. restore working directory
+
+[flags]
+
+-h|--help       Print this message
+-f|--force      Create backup even if there's nothing to add or commit.
+
+"
+# ---------------------------------------------------------------------------- #
+# ls
+# ---------------------------------------------------------------------------- #
+
+LS="
+usage           git wip ls [flags]
+
+[flags]
+-r | --remote   show remote
+-a | --all      show remote and local
+
 "
 
+# ---------------------------------------------------------------------------- #
+# config
+# ---------------------------------------------------------------------------- #
+
+CONFIG="
+usage           git wip config <variable> <value>
+
+<variable>
+prefix          prefix used for tag names
+remote-timeout  timeout in seconds, used when querying remote repositories
+"
+
+# ---------------------------------------------------------------------------- #
+# Print help string according to command
+# ---------------------------------------------------------------------------- #
 
 case $1 in
-	create)
-		echo -e $create
-	;;
-	""|*)
-		echo -e $empty
-	;;
+  create)
+    printf '%s' "$CREATE"
+    exit 0;
+    ;;
+  ls)
+    printf '%s' "$LS"
+    exit 0;
+    ;;
+  config)
+    printf '%s' "$CONFIG"
+    exit 0;
+    ;;
 esac
+
+printf '%s' "$EMPTY"
+exit 0;

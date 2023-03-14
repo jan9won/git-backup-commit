@@ -21,9 +21,15 @@ INSTALL_SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 git_installed=$(git --version > /dev/null  2>&1; printf $?)
 if [[ ! $git_installed -eq 0 ]]; then
-	printf "Git is not installed or something's wrong with your installed git.\n"
+	printf "Something went wrong while running git --version. Please check if git is installed and runs correctly.\n"
 	exit 1
 fi
+
+# --------------------------------------------------------------------------- #
+# Download source archive
+# --------------------------------------------------------------------------- #
+
+
 
 # --------------------------------------------------------------------------- #
 # Copy script source directory to $HOME/lib
@@ -63,6 +69,7 @@ if [[ (! -z $DUPLICATE_DIRECTORY_NAME) && $SCRIPT_DIRECTORY_NAME_OPTION = "o" ]]
 	printf "Removing existing directory $DUPLICATE_DIRECTORY_NAME\n"
 	rm -rf $HOME/lib/$SCRIPT_DIRECTORY_NAME
 fi
+
 printf "Writing a directory $HOME/lib/$SCRIPT_DIRECTORY_NAME\n"
 mkdir -p $HOME/lib/$SCRIPT_DIRECTORY_NAME
 cp -r $INSTALL_SCRIPT_DIR/src/* $HOME/lib/$SCRIPT_DIRECTORY_NAME

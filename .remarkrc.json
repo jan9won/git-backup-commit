@@ -1,0 +1,10 @@
+{
+  "presets": [
+    "remark-preset-lint-recommended",
+    "remark-preset-lint-consistent"
+  ],
+  "plugins": [
+    "remark-toc",
+    "remark-gfm"
+  ]
+}

@@ -1,2 +1,3 @@
-archive.tar.gz: ./src
-	tar czf archive.tar.gz ./src
+dist/archive.tar.gz: ./src
+	tar czf $@ $<
+	chmod 755 $@
