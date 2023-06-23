@@ -34,10 +34,7 @@ fi
 # Check if tag prefix is ready
 # --------------------------------------------------------------------------- #
 
-"$SCRIPT_PATH/utils/prepare-prefix.bash"
-PREFIX_IS_PREPARED=$?
-
-if [[ $PREFIX_IS_PREPARED != 0 ]]; then
+if ! "$SCRIPT_PATH/utils/prepare-prefix.bash"; then
 	exit 1
 fi
 

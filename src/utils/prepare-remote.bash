@@ -43,10 +43,8 @@ if [[ $REMOTE_TIMEOUT = "" ]]; then
 fi
 
 printf 'Checking if the remote repository "%s" is accessible (%ss timeout)...\n' "$REMOTE_NAME" "$REMOTE_TIMEOUT"
-timeout "$REMOTE_TIMEOUT" git ls-remote "$REMOTE_NAME" 1>/dev/null
-REMOTE_STATUS=$?
 
-case $REMOTE_STATUS in
+case $(timeout "$REMOTE_TIMEOUT" git ls-remote "$REMOTE_NAME" 1>/dev/null) in
   128)
     exit 1;
     ;;

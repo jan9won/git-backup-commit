@@ -4,12 +4,9 @@
 # Check if requried bash and git version is installed 
 # --------------------------------------------------------------------------- #
 
-./src/utils/check-minimum-bash-version.bash
-BASH_VERSION_FULFILLED=$?
-./src/utils/check-minimum-git-version.bash
-GIT_VERSION_FULFILLED=$?
-
-if [[ $BASH_VERSION_FULFILLED -ne 0 || $GIT_VERSION_FULFILLED -ne 0 ]]; then
+if  ! ./src/utils/check-minimum-bash-version.bash ||
+    ! ./src/utils/check-minimum-git-version.bash
+then
   exit 1 
 fi
 
@@ -18,8 +15,8 @@ fi
 # --------------------------------------------------------------------------- #
 
 COMMON_NAME="git-wip-commit"
-LIBRARY_PATH="/usr/local/lib/$COMMON_NAME"
-BINARY_PATH="/usr/local/bin/$COMMON_NAME"
+LIBRARY_PATH="$HOME/.local/lib/$COMMON_NAME"
+BINARY_PATH="$HOME/.local/bin/$COMMON_NAME"
 
 # --------------------------------------------------------------------------- #
 # Check if one of wget or curl is installed
@@ -53,7 +50,10 @@ if [[ -d "$LIBRARY_PATH" && $(ls -A "$LIBRARY_PATH") ]]; then
   exit 1
 fi
 
-mkdir -p "$LIBRARY_PATH"
+if ! mkdir -p "$LIBRARY_PATH"; then
+  printf 'mkdir failed on the %s. Aborting installation\n' "$LIBRARY_PATH"
+  exit 1
+fi
 
 # --------------------------------------------------------------------------- #
 # Prepare binary path
@@ -70,18 +70,26 @@ fi
 # Download source archive to the library path, unarchive
 # --------------------------------------------------------------------------- #
 
-# git clone "https://github.com/jan9won/git-wip-commit.git" "$LIBRARY_PATH"
-$DOWNLOAD_COMMAND "https://github.com/jan9won/git-wip-commit/blob/main/dist/archive.tar.gz"
-DOWNLOAD_STATUS=$?
-if [[ $DOWNLOAD_STATUS -ne 0 ]]; then
-  printf 'Download failed with status %d\n' "$DOWNLOAD_STATUS"
+if ! $DOWNLOAD_COMMAND "https://github.com/jan9won/git-wip-commit/blob/main/dist/archive.tar.gz"; then
+  printf 'Download failed with status %d\n' "$?"
   printf 'Download command used: %s\n' "$DOWNLOAD_COMMAND"
   printf 'Please check your internet connection or report to the developer\n'
 fi
 
-tar xzf "$DOWNLOAD_FILE_PATH" -C "$LIBRARY_PATH"
-chmod -R 755 "$LIBRARY_PATH"
-rm "$DOWNLOAD_FILE_PATH"
+if ! tar xzf "$DOWNLOAD_FILE_PATH" -C "$LIBRARY_PATH"; then
+  printf 'tar failed with exit code %d. Aborting installation.' "$?"
+  exit 1
+fi
+
+if ! chmod -R 755 "$LIBRARY_PATH"; then
+  printf 'chmod failed with exit code %d. Aborting installation.' "$?"
+  exit 1
+fi
+
+if ! rm "$DOWNLOAD_FILE_PATH"; then
+  printf 'rm failed with exit code %d. Aborting installation.' "$?"
+  exti 1
+fi
 
 # --------------------------------------------------------------------------- #
 # Install binary symlink
@@ -96,7 +104,7 @@ chmod -R 755 "$BINARY_PATH"
 
 ALIAS_NAME="wip"
 
-if [ -n "$(git config --get alias.$ALIAS_NAME)" ]; then
+if [[ -n "$(git config --get alias.$ALIAS_NAME)" ]]; then
   printf 'Git alias named '%s' is already in your git config.\n' "$ALIAS_NAME"
   # printf 'Would you like to overwrite?'
   printf 'Delete it and try again.\n'
@@ -111,7 +119,7 @@ git config --global --set "alias.$ALIAS_NAME" "!$BINARY_PATH"
 
 # IFS=':' read -ra PATH_ARRAY <<< "$PATH"
 # for path in "${PATH_ARRAY[@]}"; do
-#   if [[ "${path/ /}" = "/usr/local/bin" ]]; then
+#   if [[ "${path/ /}" = "$BINARY_PATH" ]]; then
 #     echo "found"
 #   fi
 # done

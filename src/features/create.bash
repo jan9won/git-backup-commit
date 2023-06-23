@@ -58,10 +58,7 @@ PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
 # Check if currently checked out on branch or HEAD is detached
 # ---------------------------------------------------------------------------- #
 
-git symbolic-ref -q HEAD
-WAS_ON_BRANCH="$?"
-
-if [[ $WAS_ON_BRANCH -eq 0 ]]; then
+if git symbolic-ref -q HEAD; then
   WAS_ON_BRANCH=true
   BRANCH_NAME_BEFORE="$(git branch --show-current)"
 else
@@ -85,10 +82,7 @@ fi
 # Check if there's any change to commit
 # --------------------------------------------------------------------------- #
 
-# Check git-status output
-git status --porcelain | grep -q '^.\{2\}'; 
-HAS_CHANGES_TO_COMMIT=$?
-if [[ $HAS_CHANGES_TO_COMMIT -eq 0 ]]; then
+if git status --porcelain | grep -q '^.\{2\}'; then
   HAS_CHANGES_TO_COMMIT=true
 else
   HAS_CHANGES_TO_COMMIT=false
@@ -105,12 +99,8 @@ fi
 # Create temporary branch and switch to it
 # --------------------------------------------------------------------------- #
 
-TEMP_BRANCH_NAME="$PREFIX/temp/$(date +%s)"
-
-git switch -c "$TEMP_BRANCH_NAME";
-SWITCH_SUCCESS=$?
 # If create branch failed, exit
-if [[ $SWITCH_SUCCESS -ne 0 ]]; then
+if ! git switch -c "$PREFIX/temp/$(date +%s)"; then
 	echo "Git switch failed it exit code $SWITCH_SUCCESS";
 	exit 1;
 fi
@@ -124,12 +114,8 @@ readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
-  # Add everything
-  git add .;
-  ADD_SUCCESS=$?
-
   # If add failed, clean up
-  if [[ $ADD_SUCCESS -ne 0 ]]; then
+  if ! git add .; then
     echo "git add failed";
     if [[ $WAS_ON_BRANCH = true ]]; then
       git switch "$BRANCH_NAME_BEFORE"
@@ -170,12 +156,8 @@ You shouldn't be seeing this message if it worked correctly.
 Feel free to delete, and consider reporting to the developer.
 "
 
-git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null
-
-COMMIT_SUCCESS=$?
-
 # If commit failed, clean up 
-if [[ $COMMIT_SUCCESS -ne 0 ]]; then
+if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   printf 'Commit failed with exit code %s. Cleaning up...\n' "$COMMIT_SUCCESS"
   if [[ $WAS_ON_BRANCH = true ]]; then
     git switch "$BRANCH_NAME_BEFORE"
@@ -196,11 +178,8 @@ fi
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
 
-git tag "$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"
-TAG_SUCCESS=$?
-
 # If tag failed, clean up (restore commit, delete branch, reset added files)
-if [[ $TAG_SUCCESS -ne 0 ]]; then
+if ! git tag "$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"; then
   printf 'Create tag failed with %s. Cleaning up...\n' "$TAG_SUCCESS"
   if [[ $WAS_ON_BRANCH = true ]]; then
     git switch "$BRANCH_NAME_BEFORE"
