@@ -1,164 +1,119 @@
 #!/usr/bin/env bash
 
 # --------------------------------------------------------------------------- #
-# Get install script's absolute path
-# --------------------------------------------------------------------------- #
-# 1. Resolve $SOURCE until the file is no longer a symlink.
-# 2. If $SOURCE was a relative symlink, resolve it relative to the symlink.
+# Check if requried bash and git version is installed 
 # --------------------------------------------------------------------------- #
 
-SOURCE=${BASH_SOURCE[0]}
-while [ -L "$SOURCE" ]; do
-	INSTALL_SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
-	SOURCE=$(readlink "$SOURCE")
-	[[ $SOURCE != /* ]] && SOURCE=$INSTALL_SCRIPT_DIR/$SOURCE 
-done
-INSTALL_SCRIPT_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+./src/utils/check-minimum-bash-version.bash
+BASH_VERSION_FULFILLED=$?
+./src/utils/check-minimum-git-version.bash
+GIT_VERSION_FULFILLED=$?
 
-# --------------------------------------------------------------------------- #
-# Check if git is installed
-# --------------------------------------------------------------------------- #
-
-git_installed=$(git --version > /dev/null  2>&1; printf $?)
-if [[ ! $git_installed -eq 0 ]]; then
-	printf "Something went wrong while running git --version. Please check if git is installed and runs correctly.\n"
-	exit 1
+if [[ $BASH_VERSION_FULFILLED -ne 0 || $GIT_VERSION_FULFILLED -ne 0 ]]; then
+  exit 1 
 fi
 
 # --------------------------------------------------------------------------- #
-# Download source archive
+# Installation paths
 # --------------------------------------------------------------------------- #
 
-
+COMMON_NAME="git-wip-commit"
+LIBRARY_PATH="/usr/local/lib/$COMMON_NAME"
+BINARY_PATH="/usr/local/bin/$COMMON_NAME"
 
 # --------------------------------------------------------------------------- #
-# Copy script source directory to $HOME/lib
+# Check if one of wget or curl is installed
 # --------------------------------------------------------------------------- #
 
-SCRIPT_DIRECTORY_NAME="git-backup"
-DUPLICATE_DIRECTORY_NAME=""
+DOWNLOAD_FILE_PATH="$LIBRARY_PATH/archive.tar.gz"
+DOWNLOAD_URL="https://github.com/jan9won/git-wip-commit/blob/main/install.bash"
+DOWNLOAD_COMMAND=""
 
-get_script_directory_name(){
-	printf "Overwrite [o] / Create new directory [c] / Exit [x] : "
-	read SCRIPT_DIRECTORY_NAME_OPTION
-	if [[ $SCRIPT_DIRECTORY_NAME_OPTION = "o" ]]; then
-		true
-	elif [[ $SCRIPT_DIRECTORY_NAME_OPTION = "c" ]]; then
-		printf "Enter library directory name : "
-		read SCRIPT_DIRECTORY_NAME
-		check_script_directory_duplicate
-	elif [[ $SCRIPT_DIRECTORY_NAME_OPTION = "x" ]]; then
-		printf "Exiting installaion process\n"
-		exit
-	else
-		printf "Invalid input\n"
-		get_script_directory_name
-	fi
-}
-
-check_script_directory_duplicate(){
-	if [ -d $HOME/lib/$SCRIPT_DIRECTORY_NAME ]; then
-		DUPLICATE_DIRECTORY_NAME="$HOME/lib/$SCRIPT_DIRECTORY_NAME"
-		printf "\nLibrary directory $DUPLICATE_DIRECTORY_NAME already exists.\n"
-		get_script_directory_name
-	fi
-}
-
-check_script_directory_duplicate
-if [[ (! -z $DUPLICATE_DIRECTORY_NAME) && $SCRIPT_DIRECTORY_NAME_OPTION = "o" ]]; then
-	printf "Removing existing directory $DUPLICATE_DIRECTORY_NAME\n"
-	rm -rf $HOME/lib/$SCRIPT_DIRECTORY_NAME
+if type curl >/dev/null 2>&1; then
+  DOWNLOAD_COMMAND="curl -LJo $DOWNLOAD_FILE_PATH $DOWNLOAD_URL"
 fi
 
-printf "Writing a directory $HOME/lib/$SCRIPT_DIRECTORY_NAME\n"
-mkdir -p $HOME/lib/$SCRIPT_DIRECTORY_NAME
-cp -r $INSTALL_SCRIPT_DIR/src/* $HOME/lib/$SCRIPT_DIRECTORY_NAME
-chmod -R 755 $HOME/lib/$SCRIPT_DIRECTORY_NAME
-
-# --------------------------------------------------------------------------- #
-# Add symlink of entry script to $HOME/bin
-# --------------------------------------------------------------------------- #
-
-SYMLINK_NAME="git-backup"
-SYMLINK_NAME_DUPLICATE=""
-
-get_symlink_name(){
-	printf "Overwrite [o] / Create new symlink [c] / Exit [x] : "
-	read SYMLINK_NAME_OPTION
-	if [[ $SYMLINK_NAME_OPTION = "o" ]]; then
-		true
-	elif [[ $SYMLINK_NAME_OPTION = "c" ]]; then
-		printf "Enter symlink name : "
-		read SYMLINK_NAME
-		check_symlink_duplicate
-	elif [[ $SYMLINK_NAME_OPTION = "x" ]]; then
-		printf "Exiting installaion process\n"
-		exit
-	else
-		printf "Invalid input\n"
-		get_script_directory_name
-	fi
-}
-
-check_symlink_duplicate(){
-	if [ -e "$HOME/bin/$SYMLINK_NAME" ]; then
-		SYMLINK_NAME_DUPLICATE="$HOME/bin/$SYMLINK_NAME"
-		printf "\nFile named $SYMLINK_NAME already exists in \$HOME/bin.\n"
-		get_symlink_name
-	fi
-}
-
-check_symlink_duplicate
-if [[ (! -z $SYMLINK_NAME_DUPLICATE) && $SYMLINK_NAME_OPTION = "o" ]]; then
-	printf "Removing existing file $SYMLINK_NAME_DUPLICATE\n"
-	rm $SYMLINK_NAME_DUPLICATE
+if type wget >/dev/null 2>&1; then
+  DOWNLOAD_COMMAND="wget -O $DOWNLOAD_FILE_PATH $DOWNLOAD_URL"
 fi
-printf "Writing symlink $HOME/bin/$SYMLINK_NAME\n"
-ln -s $HOME/lib/$SCRIPT_DIRECTORY_NAME/entry.bash $HOME/bin/$SYMLINK_NAME
 
-# --------------------------------------------------------------------------- #
-# Add $HOME/bin to $PATH
-# --------------------------------------------------------------------------- #
-
-mkdir -p $HOME/bin
-touch $HOME/.bash_profile
-if ! grep -Fxq "PATH=\$PATH:\$HOME/bin" $HOME/.bash_profile; then
-	printf "PATH=\$PATH:\$HOME/bin\n" >> $HOME/.bash_profile
+if [[ $DOWNLOAD_COMMAND = "" ]]; then
+  printf "Neither curl nor wget was found.\nPlease install one of them and try again."
+  exit 1
 fi
+
+# --------------------------------------------------------------------------- #
+# Prepare library path
+# --------------------------------------------------------------------------- #
+
+if [[ -d "$LIBRARY_PATH" && $(ls -A "$LIBRARY_PATH") ]]; then
+  printf 'Library directory "%s" already exists and is not empty.\n' "$LIBRARY_PATH"
+  # printf 'Would you like to overwrite?'
+  printf 'Delete the directory and try again.\n'
+  exit 1
+fi
+
+mkdir -p "$LIBRARY_PATH"
+
+# --------------------------------------------------------------------------- #
+# Prepare binary path
+# --------------------------------------------------------------------------- #
+
+if [[ -e "$BINARY_PATH" ]]; then
+  printf 'File path for binary "%s" already exists.\n' "$BINARY_PATH" 
+  # printf 'Would you like to overwrite?'
+  printf 'Delete the directory and try again.\n'
+  exit 1
+fi
+
+# --------------------------------------------------------------------------- #
+# Download source archive to the library path, unarchive
+# --------------------------------------------------------------------------- #
+
+# git clone "https://github.com/jan9won/git-wip-commit.git" "$LIBRARY_PATH"
+$DOWNLOAD_COMMAND "https://github.com/jan9won/git-wip-commit/blob/main/dist/archive.tar.gz"
+DOWNLOAD_STATUS=$?
+if [[ $DOWNLOAD_STATUS -ne 0 ]]; then
+  printf 'Download failed with status %d\n' "$DOWNLOAD_STATUS"
+  printf 'Download command used: %s\n' "$DOWNLOAD_COMMAND"
+  printf 'Please check your internet connection or report to the developer\n'
+fi
+
+tar xzf "$DOWNLOAD_FILE_PATH" -C "$LIBRARY_PATH"
+chmod -R 755 "$LIBRARY_PATH"
+rm "$DOWNLOAD_FILE_PATH"
+
+# --------------------------------------------------------------------------- #
+# Install binary symlink
+# --------------------------------------------------------------------------- #
+
+ln -s "$LIBRARY_PATH/entry.bash" "$BINARY_PATH/git-wip-commit"
+chmod -R 755 "$BINARY_PATH"
 
 # --------------------------------------------------------------------------- #
 # Add alias calling entry script to global git config.
 # --------------------------------------------------------------------------- #
 
-ALIAS_NAME="backup"
+ALIAS_NAME="wip"
 
-get_alias_name(){
-	printf "Overwrite [o] / Create new alias [c] / Exit [x] : "
-	read ALIAS_NAME_OPTION
-	if [[ $ALIAS_NAME_OPTION = "o" ]]; then
-		true
-	elif [[ $ALIAS_NAME_OPTION = "c" ]]; then
-		printf "Enter symlink name : "
-		read ALIAS_NAME
-		check_alias_duplicate
-	elif [[ $ALIAS_NAME_OPTION = "x" ]]; then
-		printf "Exiting installaion process\n"
-		exit
-	else
-		printf "Invalid input\n"
-		get_alias_name
-	fi
-}
+if [ -n "$(git config --get alias.$ALIAS_NAME)" ]; then
+  printf 'Git alias named '%s' is already in your git config.\n' "$ALIAS_NAME"
+  # printf 'Would you like to overwrite?'
+  printf 'Delete it and try again.\n'
+  exit 1
+fi
 
-check_alias_duplicate(){
-	if [ ! -z $(git config --get alias.$ALIAS_NAME) ]; then
-		printf "\nGit alias named '$ALIAS_NAME' already in your git config.\n"
-		get_alias_name
-	fi
-}
+git config --global --set "alias.$ALIAS_NAME" "!$BINARY_PATH"
 
-check_alias_duplicate
-printf "Writing to git config : alias.$ALIAS_NAME\n"
-git config --global "alias.$ALIAS_NAME" "!$SYMLINK_NAME"
+# --------------------------------------------------------------------------- #
+# Check if $PATH includes binary path. If not, suggest so
+# --------------------------------------------------------------------------- #
 
-printf "Now you can use command \"git $ALIAS_NAME\"\n"
+# IFS=':' read -ra PATH_ARRAY <<< "$PATH"
+# for path in "${PATH_ARRAY[@]}"; do
+#   if [[ "${path/ /}" = "/usr/local/bin" ]]; then
+#     echo "found"
+#   fi
+# done
+
+printf 'Installed correctly.\nFollowing commands are available:\n"git %s" or "%s"' "$ALIAS_NAME" "$COMMON_NAME"

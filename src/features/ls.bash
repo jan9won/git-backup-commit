@@ -18,5 +18,5 @@ echo $@
 exit 0
 
 
-PREFIX=$(git config --get git-backup.branch-prefix)
+PREFIX=$(git config --get jan9wongit-wip-commit.prefix)
 git branch -a --sort=authordate --list "$PREFIX/*"

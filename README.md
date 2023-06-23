@@ -7,13 +7,14 @@
     *   [What is a "WIP commit"](#what-is-a-wip-commit)
     *   [Features](#features)
     *   [Advantages Over Other Strategies](#advantages-over-other-strategies)
-    *   [What This Library Isn't](#what-this-library-isnt)
+    *   [Limitations](#limitations)
 
 *   [Getting Started](#getting-started)
 
     *   [Requirements](#requirements)
     *   [Installation](#installation)
-    *   [Configuration](#configuration)
+
+*   [Configuration](#configuration)
 
 *   [Usage](#usage)
 
@@ -73,16 +74,19 @@
     *   Stashes can't be directly pushed to the remote (not at least with well-defined behavior)
     *   Stashes are harder to be used as backup, as they’re not part of history
 
-### What This Library Isn't
+### Limitations
 
 1.  History won’t be 100% clean
     *   It still creates extra commmits and tags
+    *   Log will show WIP commits with options like `git log --all` or `git log --tags`
 
 2.  It’s not resilient to destructive commands
-    *   If you accidentally delete WIP commit’s tag, the commit becomes a dangling commit, and will be deleted by garbage collection
+    *   If you accidentally delete WIP commit’s tag, the commit becomes a dangling commit, and will be deleted in the next garbage collection routine
 
-3.  Commits are not private
+3.  WIP Commits are not 100% private
     *   They can still be pushed to any remote if specified explicitly
+    *   E.g., `git push <remote> <tag_name>`
+    *   Though it isn't likely to happen, as tag names are long and complex
 
 ## Getting Started
 
@@ -92,6 +96,8 @@ This is a collection of bash scripts that uses native git commands.
 
 *   bash > 4.3 (Jul. 10, 2014)
 *   git > 1.9 (Feb, 14. 2014)
+*   curl or wget
+*   tar
 
 ### Installation
 
@@ -111,7 +117,7 @@ This is a collection of bash scripts that uses native git commands.
     source ~/.profile
     ```
 
-### Configuration
+## Configuration
 
 1.  Configure tag prefix
     *   Purpose:    A string prefixed to the tags that marks backup commits
@@ -219,7 +225,7 @@ Configuration is stored in repository's local \`\` file's section.
 
 It’s prefixed to every WIP commit’s unique tag.
 
-In local `.git/config`, under `[git-backup-commit]` section, edit `tag-prefix` variable’s value.
+In local `.git/config`, under `[jan9won.git-wip-commit]` section, edit `prefix` variable’s value.
 
     [git-wip-commit]
     	...
