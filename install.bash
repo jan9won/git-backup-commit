@@ -1,14 +1,62 @@
 #!/usr/bin/env bash
 
 # --------------------------------------------------------------------------- #
+# Check if requried bash version is installed 
+# --------------------------------------------------------------------------- #
+
+[[ $BASH_VERSION =~ ([0-9]*\.[0-9]*\.[0-9]*) ]]
+
+IFS='.' read -r -a BASH_VER <<< "${BASH_REMATCH[1]}"
+
+# MAJOR=4
+BASH_MAJOR=4
+BASH_MINOR=3
+BASH_PATCH=0
+
+if [[
+  ${BASH_VER[0]} -lt $BASH_MAJOR ||
+  (
+    ${BASH_VER[0]} -eq $BASH_MAJOR &&
+    ${BASH_VER[1]} -lt $BASH_MINOR
+  ) ||
+  (
+    ${BASH_VER[0]} -eq $BASH_MAJOR &&
+    ${BASH_VER[1]} -eq $BASH_MINOR &&
+    ${BASH_VER[2]} -lt $BASH_PATCH
+  )
+]]; then
+  printf 'Bash version %d.%d.%d or later is required.\n' "$BASH_MAJOR" "$BASH_MINOR" "$BASH_PATCH"
+  printf 'Your current version is %d.%d.%d\n' "${BASH_VER[0]}" "${BASH_VER[1]}" "${BASH_VER[2]}"
+  exit 1
+fi
+
+# --------------------------------------------------------------------------- #
 # Check if requried bash and git version is installed 
 # --------------------------------------------------------------------------- #
 
-if  ! ./src/utils/check-minimum-bash-version.bash ||
-    ! ./src/utils/check-minimum-git-version.bash
-then
-  exit 1 
+IFS='.' read -r -a GIT_VER <<< "$(git --version | sed -e 's/[^0-9.]//g')"
+
+GIT_MAJOR=1
+GIT_MINOR=9
+GIT_PATCH=0
+
+if [[
+  ${GIT_VER[0]} -lt $GIT_MAJOR ||
+  (
+    ${GIT_VER[0]} -eq $GIT_MAJOR &&
+    ${GIT_VER[1]} -lt $GIT_MINOR
+  ) ||
+  (
+    ${GIT_VER[0]} -eq $GIT_MAJOR &&
+    ${GIT_VER[1]} -eq $GIT_MINOR &&
+    ${GIT_VER[2]} -lt $GIT_PATCH
+  )
+]]; then
+  printf 'Git version %d.%d.%d or later is required.\n' "$GIT_MAJOR" "$GIT_MINOR" "$GIT_PATCH"
+  printf 'Your current version is %d.%d.%d\n' "${GIT_VER[0]}" "${GIT_VER[1]}" "${GIT_VER[2]}"
+  exit 1
 fi
+
 
 # --------------------------------------------------------------------------- #
 # Installation paths

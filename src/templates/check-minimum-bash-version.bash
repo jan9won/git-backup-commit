@@ -24,6 +24,4 @@ if [[
   printf 'Bash version %d.%d.%d or later is required.\n' "$MAJOR" "$MINOR" "$PATCH"
   printf 'Your current version is %d.%d.%d\n' "${BASH_VER[0]}" "${BASH_VER[1]}" "${BASH_VER[2]}"
   exit 1
-  else
-  exit 0
 fi
