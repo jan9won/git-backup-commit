@@ -70,7 +70,7 @@ fi
 # Download source archive to the library path, unarchive
 # --------------------------------------------------------------------------- #
 
-if ! $DOWNLOAD_COMMAND "https://github.com/jan9won/git-wip-commit/blob/main/dist/archive.tar.gz"; then
+if ! $DOWNLOAD_COMMAND; then
   printf 'Download failed with status %d\n' "$?"
   printf 'Download command used: %s\n' "$DOWNLOAD_COMMAND"
   printf 'Please check your internet connection or report to the developer\n'
