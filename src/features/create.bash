@@ -29,7 +29,7 @@ FORCE=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -h|--help)
+    help)
 			"$SCRIPT_PATH/usage.bash" "create"
       exit 0
       ;;

@@ -26,7 +26,8 @@ SCRIPT_PATH=$(get_script_path)
 IS_GIT_REPO=$(git rev-parse --is-inside-work-tree 2>/dev/null)
 
 if [[ $IS_GIT_REPO != "true" ]]; then
-	printf "You're not in a git repository.\n"
+	printf "[Error] Not a git repository.\n"
+  "$SCRIPT_PATH/features/usage.bash"
 	exit 1
 fi
 
@@ -44,7 +45,7 @@ fi
 
 while [[ "$#" -gt 0 ]]; do
 	case $1 in
-    --help)
+    help)
       shift;
 			"$SCRIPT_PATH/features/usage.bash"
       exit 0;
