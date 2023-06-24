@@ -100,7 +100,9 @@ fi
 # --------------------------------------------------------------------------- #
 
 # If create branch failed, exit
-if ! git switch -c "$PREFIX/temp/$(date +%s)"; then
+TEMP_BRANCH_NAME="$PREFIX/temp/$(date +%s)"
+
+if ! git switch -c "$TEMP_BRANCH_NAME"; then
 	echo "Git switch failed it exit code $SWITCH_SUCCESS";
 	exit 1;
 fi
@@ -114,6 +116,7 @@ readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
+  printf 'Adding every changes to the staging area\n'
   # If add failed, clean up
   if ! git add .; then
     echo "git add failed";
@@ -156,6 +159,7 @@ You shouldn't be seeing this message if it worked correctly.
 Feel free to delete, and consider reporting to the developer.
 "
 
+printf 'Creating a commit\n'
 # If commit failed, clean up 
 if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   printf 'Commit failed with exit code %s. Cleaning up...\n' "$COMMIT_SUCCESS"

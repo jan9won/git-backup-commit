@@ -228,8 +228,4 @@ fi
 # Wrap up
 # ---------------------------------------------------------------------------- #
 
-<<<<<<< HEAD
-printf 'git-wip-commit installed correctly\nCommand: git wip'
-=======
 printf 'git-wip-commit installed correctly. Command is now available: git wip\n'
->>>>>>> d64af4a (Entry, Usage Bug Fix)
