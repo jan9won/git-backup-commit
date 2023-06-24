@@ -70,10 +70,8 @@ fi
 # Check if currently checked out on another wip branch
 # ---------------------------------------------------------------------------- #
 
-WIP_TAG_BEFORE=$(git tag --contains HEAD | grep "$PREFIX")
-
-if [[ $WIP_TAG_BEFORE != "" ]]; then
-  printf "You're currently on another wip commit \"%s\".\n" "$WIP_TAG_BEFORE"
+if git show-ref --tags | grep "$(git rev-parse HEAD)" | sed 's|.*/tags/||' | grep "$PREFIX*"; then
+  printf "You're currently on another wip commit tagged with name above.\n" 
   printf "You can't create another wip commit on a wip commit.\n"
   exit 1
 fi 
@@ -153,10 +151,10 @@ fi
 # Commit everything
 # --------------------------------------------------------------------------- #
 
-COMMIT_MESSAGE="
-This is a temporary branch used by jan9won/git-wip-command library.
-You shouldn't be seeing this message if it worked correctly.
-Feel free to delete, and consider reporting to the developer.
+COMMIT_MESSAGE="WIP Commit
+
+This is a commit created by jan9won/git-wip-command library.
+It's recommended not to interact with this commit directly, but rather use the library.
 "
 
 printf 'Creating a commit\n'
