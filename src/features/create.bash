@@ -48,6 +48,57 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# --------------------------------------------------------------------------- #
+# Cleanup Functions
+# --------------------------------------------------------------------------- #
+
+cleanup_reset_newly_added_files()
+{
+  if ! git switch -q "$BRANCH_NAME_BEFORE"; then
+    printf 'Failed to switch to the original branch\n'
+    exit 1
+  fi
+}
+
+cleanup_delete_temp_branch()
+{
+  if ! git branch -D "$TEMP_BRANCH_NAME"; then
+    printf 'Failed to delete the temporary branch used to create WIP commit\n'
+    if [[ "$TEMP_BRANCH_NAME" = "" ]]; then
+      printf 'Temporary branch name is empty\n'
+    else
+      printf 'Temporary branch name is %s\n' "$TEMP_BRANCH_NAME"
+    fi
+  fi
+}
+
+cleanup_checkout_previous_commit()
+{
+  if [[ $WAS_ON_BRANCH = true ]]; then
+    if ! git switch -q "$BRANCH_NAME_BEFORE"; then
+      printf 'Failed to switch to the original branch\n'
+      exit 1
+    fi
+  else
+    if ! git checkout -q "$COMMIT_HASH_BEFORE"; then
+      printf 'Failed to checkout the original commit\n'
+      exit 1
+    fi
+  fi
+}
+
+cleanup_restore_and_add()
+{
+  if ! git restore --source "$TEMP_BRANCH_NAME" .;then
+    printf 'Failed to restore the original state of working tree\n'
+    exit 1
+  fi
+  if ! git add "${STAGED_FILES_BEFORE[@]}"; then
+    printf 'Failed to restore the original state of staging area\n'
+    exit 1 
+  fi
+}
+
 # ---------------------------------------------------------------------------- #
 # Get prefix
 # ---------------------------------------------------------------------------- #
@@ -86,7 +137,7 @@ else
   HAS_CHANGES_TO_COMMIT=false
 fi
 
-# If no changes to commit, exit
+# If no changes to commit, or --force is not set, exit
 if [[ $HAS_CHANGES_TO_COMMIT = false && $FORCE = false ]]; then
   printf 'There are no changes to commit.\n'
   printf 'Use option "--force" to create empty one.\n'
@@ -94,45 +145,40 @@ if [[ $HAS_CHANGES_TO_COMMIT = false && $FORCE = false ]]; then
 fi  
 
 # --------------------------------------------------------------------------- #
-# Create temporary branch and switch to it
+# Action 1 : Create temporary branch and switch to it
 # --------------------------------------------------------------------------- #
 
 # If create branch failed, exit
 TEMP_BRANCH_NAME="$PREFIX/temp/$(date +%s)"
 
-if ! git switch -c "$TEMP_BRANCH_NAME"; then
-	echo "Git switch failed it exit code $SWITCH_SUCCESS";
+printf 'Switching to the temporary branch %s\n' "$TEMP_BRANCH_NAME"
+if ! git switch -q -c "$TEMP_BRANCH_NAME"; then
+	printf 'Git switch failed it exit code'
 	exit 1;
 fi
 
 # --------------------------------------------------------------------------- #
-# Add everything, store which files were added by this command
+# Action 2 : Add everything, store which files were on staging area on which stage
 # --------------------------------------------------------------------------- #
 
-# Grab files in the staging area before adding
-readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+# Grab files in the staging area before this command
+read -r -a -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
   printf 'Adding every changes to the staging area\n'
   # If add failed, clean up
   if ! git add .; then
-    echo "git add failed";
-    if [[ $WAS_ON_BRANCH = true ]]; then
-      git switch "$BRANCH_NAME_BEFORE"
-    else
-      git checkout "$COMMIT_HASH_BEFORE"
-    fi
-    git branch -D "$TEMP_BRANCH_NAME"
+    printf 'Git add failed. Cleaning up...\n'
+    cleanup_delete_temp_branch
     exit 1;
   fi
 
   # Grab files in the staging area after adding 
-  readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
-
-  ADDED_FILES=()
+  read -r -a -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
   # List files that were newly added by this command
+  ADDED_FILES=()
   for added_file_after in "${STAGED_FILES_AFTER[@]}"
   do
     for added_file_before in "${STAGED_FILES_BEFORE[@]}"
@@ -148,7 +194,7 @@ if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
 fi
 
 # --------------------------------------------------------------------------- #
-# Commit everything
+# Action 3 : Create a commit
 # --------------------------------------------------------------------------- #
 
 COMMIT_MESSAGE="WIP Commit
@@ -160,49 +206,38 @@ It's recommended not to interact with this commit directly, but rather use the l
 printf 'Creating a commit\n'
 # If commit failed, clean up 
 if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
-  printf 'Commit failed with exit code %s. Cleaning up...\n' "$COMMIT_SUCCESS"
-  if [[ $WAS_ON_BRANCH = true ]]; then
-    git switch "$BRANCH_NAME_BEFORE"
-  else
-    git checkout "$COMMIT_HASH_BEFORE"
-  fi
-  # reset newly added files
-  git reset "${ADDED_FILES[@]}"
-  # delete branch
-  git branch -D "$TEMP_BRANCH_NAME"
+  printf 'Commit failed. Cleaning up...\n'
+  cleanup_checkout_previous_commit
+  cleanup_reset_newly_added_files
+  cleanup_delete_temp_branch
 	exit 1;
 fi
 
 # --------------------------------------------------------------------------- #
-# Create Tag
+# Action 4 : Create a Tag
 # --------------------------------------------------------------------------- #
 
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
+TAG_NAME="$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"
 
 # If tag failed, clean up (restore commit, delete branch, reset added files)
-if ! git tag "$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"; then
+if ! git tag "$TAG_NAME"; then
   printf 'Create tag failed with %s. Cleaning up...\n' "$TAG_SUCCESS"
-  if [[ $WAS_ON_BRANCH = true ]]; then
-    git switch "$BRANCH_NAME_BEFORE"
-  else
-    git checkout "$COMMIT_HASH_BEFORE"
-  fi
-  git restore --source "$TEMP_BRANCH_NAME" .;
-  git reset "${STAGED_FILES_BEFORE[@]}"
-  git branch -D "$TEMP_BRANCH_NAME"
+  cleanup_checkout_previous_commit
+  cleanup_restore_and_add
+  cleanup_delete_temp_branch
+  exit 1
 fi
- 
+
+
 # --------------------------------------------------------------------------- #
-# Restore working tree and staging area, delete temporary branch
+# Action 5 : Restore to original state of working tree and staging area
 # --------------------------------------------------------------------------- #
 
-if [[ $WAS_ON_BRANCH = true ]]; then
-  git switch "$BRANCH_NAME_BEFORE"
-else
-  git checkout "$COMMIT_HASH_BEFORE"
-fi
-git restore --source "$TEMP_BRANCH_NAME" .;
-git reset "${STAGED_FILES_BEFORE[@]}"
-git branch -D "$TEMP_BRANCH_NAME"
+cleanup_checkout_previous_commit
+cleanup_restore_and_add
+cleanup_delete_temp_branch
 
+printf 'Created a WIP commit and restored working and staging area\nTag name: %s\n' "$TAG_NAME"
+exit 0
