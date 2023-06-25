@@ -166,7 +166,7 @@ fi
 # --------------------------------------------------------------------------- #
 
 # Grab files in the staging area before this command
-read -r -a -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+read -r -a STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
@@ -179,7 +179,7 @@ if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
   fi
 
   # Grab files in the staging area after adding 
-  read -r -a -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+  read -r -a STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
   # List files that were newly added by this command
   ADDED_FILES=()
