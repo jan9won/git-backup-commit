@@ -87,15 +87,19 @@ cleanup_checkout_previous_commit()
   fi
 }
 
-cleanup_restore_all_and_add_files_exsisted_before()
+cleanup_restore_all_and_add_files_staged_before()
 {
+  printf 'Restoring from temporary branch %s\n' "$TEMP_BRANCH_NAME"
   if ! git restore --source "$TEMP_BRANCH_NAME" .;then
     printf 'Failed to restore the original state of working tree\n'
     exit 1
   fi
-  if ! git add "${STAGED_FILES_BEFORE[@]}"; then
-    printf 'Failed to restore the original state of staging area\n'
-    exit 1 
+  printf 'Adding staged files before this command\n'
+  if [[ "${#STAGED_FILES_BEFORE[@]}" -gt 0 ]]; then
+    if ! git add "${STAGED_FILES_BEFORE[@]}" ; then
+      printf 'Failed to restore the original state of staging area\n'
+      exit 1 
+    fi
   fi
 }
 
@@ -226,7 +230,7 @@ printf 'Creating a tag\n'
 if ! git tag "$TAG_NAME"; then
   printf 'Create tag failed with %s. Cleaning up...\n' "$TAG_SUCCESS"
   cleanup_checkout_previous_commit
-  cleanup_restore_all_and_add_files_exsisted_before
+  cleanup_restore_all_and_add_files_staged_before
   cleanup_delete_temp_branch
   exit 1
 fi
@@ -237,7 +241,7 @@ fi
 # --------------------------------------------------------------------------- #
 
 cleanup_checkout_previous_commit
-cleanup_restore_all_and_add_files_exsisted_before
+cleanup_restore_all_and_add_files_staged_before
 cleanup_delete_temp_branch
 
 printf 'Created a WIP commit and restored working and staging area\nTag name: %s\n' "$TAG_NAME"
