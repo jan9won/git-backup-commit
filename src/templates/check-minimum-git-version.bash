@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-IFS='.' read -r -a GIT_VER <<< "$(git --version | sed -e 's/[^0-9.]//g')"
+[[ $(git --version) =~ ([0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}) ]]
+IFS='.' read -r -a GIT_VER <<< "${BASH_REMATCH[1]}"
 
 MAJOR=1
 MINOR=9

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-[[ $BASH_VERSION =~ ([0-9]*\.[0-9]*\.[0-9]*) ]]
-
+[[ $BASH_VERSION =~ ([0-9]{1,}\.[0-9]{1,}\.[0-9]{1,}) ]]
 IFS='.' read -r -a BASH_VER <<< "${BASH_REMATCH[1]}"
 
 # MAJOR=4

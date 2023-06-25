@@ -94,6 +94,7 @@ cleanup_restore_all_and_add_files_staged_before()
     printf 'Failed to restore the original state of working tree\n'
     exit 1
   fi
+
   printf 'Adding staged files before this command\n'
   if [[ "${#STAGED_FILES_BEFORE[@]}" -gt 0 ]]; then
     if ! git add "${STAGED_FILES_BEFORE[@]}" ; then
@@ -166,7 +167,7 @@ fi
 # --------------------------------------------------------------------------- #
 
 # Grab files in the staging area before this command
-read -r -a STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
@@ -179,7 +180,7 @@ if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
   fi
 
   # Grab files in the staging area after adding 
-  read -r -a STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+  readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
 
   # List files that were newly added by this command
   ADDED_FILES=()
