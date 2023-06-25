@@ -52,10 +52,10 @@ done
 # Cleanup Functions
 # --------------------------------------------------------------------------- #
 
-cleanup_reset_newly_added_files()
+cleanup_restore_newly_added_files()
 {
-  if ! git switch -q "$BRANCH_NAME_BEFORE"; then
-    printf 'Failed to switch to the original branch\n'
+  if ! git restore --staged "${ADDED_FILES[*]}"; then
+    printf 'Failed to restore files staged by git wip create.\nFile list:\n%s\n' "${ADDED_FILES[*]}"
     exit 1
   fi
 }
@@ -87,7 +87,7 @@ cleanup_checkout_previous_commit()
   fi
 }
 
-cleanup_restore_and_add()
+cleanup_restore_all_and_add_files_exsisted_before()
 {
   if ! git restore --source "$TEMP_BRANCH_NAME" .;then
     printf 'Failed to restore the original state of working tree\n'
@@ -208,7 +208,7 @@ printf 'Creating a commit\n'
 if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   printf 'Commit failed. Cleaning up...\n'
   cleanup_checkout_previous_commit
-  cleanup_reset_newly_added_files
+  cleanup_restore_newly_added_files
   cleanup_delete_temp_branch
 	exit 1;
 fi
@@ -221,11 +221,12 @@ COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
 TAG_NAME="$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"
 
+printf 'Creating a tag\n'
 # If tag failed, clean up (restore commit, delete branch, reset added files)
 if ! git tag "$TAG_NAME"; then
   printf 'Create tag failed with %s. Cleaning up...\n' "$TAG_SUCCESS"
   cleanup_checkout_previous_commit
-  cleanup_restore_and_add
+  cleanup_restore_all_and_add_files_exsisted_before
   cleanup_delete_temp_branch
   exit 1
 fi
@@ -236,7 +237,7 @@ fi
 # --------------------------------------------------------------------------- #
 
 cleanup_checkout_previous_commit
-cleanup_restore_and_add
+cleanup_restore_all_and_add_files_exsisted_before
 cleanup_delete_temp_branch
 
 printf 'Created a WIP commit and restored working and staging area\nTag name: %s\n' "$TAG_NAME"
