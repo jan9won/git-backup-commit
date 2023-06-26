@@ -17,8 +17,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install-library:
+  install-and-entry:
     runs-on: ubuntu-latest
     steps:
-      - name: test
-        run: echo hello github workflow!
+
+      - name: Download install script from github and run it with local bash
+        run: curl -o- "https://raw.githubusercontent.com/jan9won/git-wip-commit/main/install.bash" | bash 
+        
+      - name: Run entry script with argument "help"
+        run: git wip help 
