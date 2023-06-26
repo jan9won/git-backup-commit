@@ -224,7 +224,7 @@ fi
 
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
-TAG_NAME="$PREFIX/$COMMIT_HASH-$COMMIT_TIMESTAMP"
+TAG_NAME="$PREFIX/$(date -r "$COMMIT_TIMESTAMP" +"%y%m%d-%H%M%S")/${COMMIT_HASH:0:7}"
 
 printf 'Creating a tag\n'
 # If tag failed, clean up (restore commit, delete branch, reset added files)
