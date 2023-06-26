@@ -23,11 +23,17 @@ SCRIPT_PATH=$(get_script_path)
 BACKUP_TAG_PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
 BACKUP_TAG_WAS_SET=$?
 
+# if not, set it as default
 if [[ $BACKUP_TAG_WAS_SET -ne 0 ]]; then
   printf 'Tag prefix is not configured\n'
-  printf 'See "configuration" section in README\n\n'
-  "$SCRIPT_PATH/../features/usage.bash" "config"
-  exit 1
+  printf 'Setting "jan9won.git-wip-commit.prefix" as "wip" in your local git config\n'
+  # Make it executable
+  if ! git config jan9won.git-wip-commit.prefix wip; then
+    printf 'Failed to add value in the local git config.\n'
+    printf 'See more in "configuration" section in README\n\n'
+    exit 1
+  fi
+  BACKUP_TAG_PREFIX="wip"
 fi
 
 # --------------------------------------------------------------------------- #

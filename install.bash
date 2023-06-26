@@ -186,11 +186,13 @@ if ! mkdir -p "$HOME/.local/bin/"; then
   exit 1
 fi
 
+# Add symlink to entry.bash in binary path
 if ! ln -s "$LIBRARY_PATH/entry.bash" "$BINARY_PATH"; then
   printf '[ERROR] Symlink creation failed. Aborting installation\n'
   exit 1
 fi
 
+# Make it executable
 if ! chmod -R 755 "$BINARY_PATH"; then
   printf '[ERROR] Permission changing failed. Aborting installation\n'
   exit 1
