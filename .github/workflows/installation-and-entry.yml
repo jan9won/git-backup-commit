@@ -25,4 +25,4 @@ jobs:
         run: curl -o- "https://raw.githubusercontent.com/jan9won/git-wip-commit/main/install.bash" | bash 
         
       - name: Run entry script with argument "help"
-        run: git wip help 
+        run: mkdir ~/test | cd ~/test | git init | git wip help 
