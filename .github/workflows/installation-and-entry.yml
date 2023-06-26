@@ -1,0 +1,24 @@
+
+name: 'Integration Test: Installation and Entry'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  install-library:
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: echo hello github workflow!
