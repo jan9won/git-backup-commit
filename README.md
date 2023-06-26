@@ -1,5 +1,9 @@
 # Git-WIP-Commit
 
+> Tests
+> 
+> ![Integration And Entry](https://github.com/jan9won/git-wip-commit/actions/workflows/installation-and-entry.yml/badge.svg)
+
 ## Table of Contents
 
 *   [Introduction](#introduction)
