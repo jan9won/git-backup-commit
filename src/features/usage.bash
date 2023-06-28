@@ -5,15 +5,15 @@
 # ---------------------------------------------------------------------------- #
 
 EMPTY="
-usage           git wip [--help] <command> 
+usage           git wip [help] <command> 
 
 <command>
-create          Create new wip commit, restore working and staging area
-delete          Delete given wip commit
-restore         Restore working directory from given wip commit
-ls              List all wip commits
-push            Push wip commits to remote
-fetch           Fetch wip commits to remote
+create          Create new WIP commit, restore working and staging area
+delete          Delete given WIP commit
+restore         Restore working directory from given WIP commit
+ls              List all WIP commits
+push            Push WIP commits to remote
+fetch           Fetch WIP commits to remote
 
 "
 
@@ -22,16 +22,11 @@ fetch           Fetch wip commits to remote
 # ---------------------------------------------------------------------------- #
 
 CREATE="
-Usage           git wip create [flags]
+Usage           git wip create [help] [options]
 
-Description     1. create new backup branch
-                2. commit everything
-                3. restore working directory
+[options]
 
-[flags]
-
--h|--help       Print this message
--f|--force      Create backup even if there's nothing to add or commit.
+-f|--force      Create even if there's nothing to commit.
 
 "
 # ---------------------------------------------------------------------------- #
@@ -39,12 +34,36 @@ Description     1. create new backup branch
 # ---------------------------------------------------------------------------- #
 
 LS="
-usage           git wip ls [flags]
+Usage           git wip ls [help] [options]
 
-[flags]
--r | --remote   show remote
--a | --all      show remote and local
+Description     List WIP tags in the local repository
 
+[options]
+
+--before|after=<timestamp>
+
+                List WIP commits created before or after the <timestamp>.
+
+                Both options are inclusive.
+
+                <timestamp> is a unix timestamp. You can use commands like
+                \`date -d \"<datetime_string>\" +%s\` to get it.
+
+                \`--before\` and \`--after\` can be used at the same time.
+                However if the same flag is provided multiple times, only the
+                first one will be used.
+
+--format=<raw|pretty|long>
+
+                Choose a level of information to print for each WIP commit.
+                
+                raw (default): print raw tag name, which has a UNIX timestamp
+                and full commit hash
+
+                pretty: print locale-formatted time string and short commit hash
+
+                long: print raw tag name, locale-formatted time string and full
+                list of committed files (result of \`git show --name-status\`)
 "
 
 # ---------------------------------------------------------------------------- #
@@ -55,6 +74,7 @@ CONFIG="
 usage           git wip config <variable> <value>
 
 <variable>
+
 prefix          prefix used for tag names
 remote-timeout  timeout in seconds, used when querying remote repositories
 "

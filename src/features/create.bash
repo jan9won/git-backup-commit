@@ -24,7 +24,7 @@ SCRIPT_PATH=$(get_script_path)
 # ---------------------------------------------------------------------------- #
 # Argument parsing
 # ---------------------------------------------------------------------------- #
-
+#
 FORCE=false
 
 while [[ $# -gt 0 ]]; do
@@ -167,7 +167,8 @@ fi
 # --------------------------------------------------------------------------- #
 
 # Grab files in the staging area before this command
-readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+# readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached HEAD)
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
@@ -180,7 +181,8 @@ if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
   fi
 
   # Grab files in the staging area after adding 
-  readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+  # readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
+  readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached HEAD)
 
   # List files that were newly added by this command
   ADDED_FILES=()
@@ -224,7 +226,7 @@ fi
 
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
-TAG_NAME="$PREFIX/$(date -r "$COMMIT_TIMESTAMP" +"%y%m%d-%H%M%S")/${COMMIT_HASH:0:7}"
+TAG_NAME="$PREFIX/$COMMIT_TIMESTAMP/$COMMIT_HASH"
 
 printf 'Creating a tag\n'
 # If tag failed, clean up (restore commit, delete branch, reset added files)
