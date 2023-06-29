@@ -59,13 +59,13 @@ cleanup_restore_newly_added_files()
     printf 'Failed to restore files staged by git wip create.\nFile list:\n%s\n' "${ADDED_FILES[*]}"
     exit 1
   fi
-  printf 'OK'
+  printf 'OK\n'
 }
 
 cleanup_delete_temp_branch()
 {
-  printf 'Deleting the temporary branch created by this command...\n'
-  if ! git branch -D "$TEMP_BRANCH_NAME"; then
+  printf 'Deleting the temporary branch created by this command...'
+  if ! git branch -q -D "$TEMP_BRANCH_NAME"; then
     printf 'Failed to delete the temporary branch used to create WIP commit\n'
     if [[ "$TEMP_BRANCH_NAME" = "" ]]; then
       printf 'Temporary branch name is empty\n'
@@ -73,6 +73,7 @@ cleanup_delete_temp_branch()
       printf 'Temporary branch name is %s\n' "$TEMP_BRANCH_NAME"
     fi
   fi
+  printf 'OK\n'
 }
 
 cleanup_checkout_previous_commit()
@@ -121,7 +122,7 @@ PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
 # Check if currently checked out on branch or HEAD is detached
 # ---------------------------------------------------------------------------- #
 
-if git symbolic-ref -q HEAD; then
+if git symbolic-ref -q HEAD > /dev/null; then
   WAS_ON_BRANCH=true
   BRANCH_NAME_BEFORE="$(git branch --show-current)"
 else
