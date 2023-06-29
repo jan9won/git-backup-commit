@@ -14,7 +14,6 @@ restore         Restore working directory from given WIP commit
 ls              List all WIP commits
 push            Push WIP commits to remote
 fetch           Fetch WIP commits to remote
-
 "
 
 # ---------------------------------------------------------------------------- #
@@ -27,7 +26,6 @@ Usage           git wip create [help] [options]
 [options]
 
 -f|--force      Create even if there's nothing to commit.
-
 "
 # ---------------------------------------------------------------------------- #
 # ls
@@ -40,30 +38,33 @@ Description     List WIP tags in the local repository
 
 [options]
 
---before|after=<timestamp>
+--<before|after>=<timestamp>
 
                 List WIP commits created before or after the <timestamp>.
 
-                Both options are inclusive.
+                Both --before and --after are inclusive. They can be used at the
+                same time. However if the same flag is provided multiple times,
+                only the first one will be used.
 
                 <timestamp> is a unix timestamp. You can use commands like
                 \`date -d \"<datetime_string>\" +%s\` to get it.
-
-                \`--before\` and \`--after\` can be used at the same time.
-                However if the same flag is provided multiple times, only the
-                first one will be used.
+          
 
 --format=<raw|pretty|long>
 
                 Choose a level of information to print for each WIP commit.
                 
-                raw (default): print raw tag name, which has a UNIX timestamp
-                and full commit hash
+                <raw> (default)
+                Print raw tag name, which is consisted of a UNIX timestamp
+                and full commit hash.
 
-                pretty: print locale-formatted time string and short commit hash
+                <pretty>
+                Print locale-formatted time string and short commit hash
 
-                long: print raw tag name, locale-formatted time string and full
-                list of committed files (result of \`git show --name-status\`)
+                <long>
+                Print raw tag name, locale-formatted time string and full
+                list of committed files (result of \`git show --name-status\`).
+                The files that have added by this library is marked with \"+\".
 "
 
 # ---------------------------------------------------------------------------- #
