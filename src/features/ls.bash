@@ -27,7 +27,7 @@ SCRIPT_PATH=$(get_script_path)
 
 declare -i time_before
 declare -i time_after
-format="raw"
+format="pretty"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -92,6 +92,7 @@ for tag in  "${tag_list[@]}"; do
   [[ "$tag" =~ ([0-9]{10,})/([a-zA-Z0-9]{40}) ]]
 
   timestamp="${BASH_REMATCH[1]}"
+  time_string=$(date -r "$timestamp" "+%x %A %X")
   commit_hash="${BASH_REMATCH[2]}"
 
   # Filter with timestamp
@@ -115,12 +116,10 @@ for tag in  "${tag_list[@]}"; do
   fi
 
   if [[ $format == "pretty" ]]; then
-    printf '%s\n%s\n\n' "$tag" "$time_string, ${commit_hash:0:7}"
+    printf 'tag\t%s\ndate\t%s\nhash\t%s\n\n' "$tag" "$time_string" "${commit_hash:0:7}"
   fi
 
   if [[ $format == "long" ]]; then
-
-    time_string=$(date -r "$timestamp" "+%x %A %X")
     readarray -t committed_files < <(git show --name-status --pretty= "$commit_hash")
     readarray -t newly_added_files < <(git tag --list --format='%(body)' "$tag")
 
