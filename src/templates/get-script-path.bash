@@ -18,4 +18,4 @@ get_script_path () {
 }
 
 SCRIPT_PATH=$(get_script_path)
-
+HELP_PATH=$(readlink -f "$SCRIPT_PATH/../somefile.bash")

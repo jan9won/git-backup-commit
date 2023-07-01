@@ -26,7 +26,7 @@ SCRIPT_PATH=$(get_script_path)
 # ---------------------------------------------------------------------------- #
 #
 FORCE=false
-VERBOUS=false
+VERBOSE=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -38,8 +38,8 @@ while [[ $# -gt 0 ]]; do
       FORCE=true
       shift
       ;;
-    -v|--verbous)
-      VERBOUS=true
+    -v|--verbose)
+      VERBOSE=true
       shift
       ;;
     -*)
@@ -59,17 +59,17 @@ done
 
 cleanup_restore_newly_added_files()
 {
-  $VERBOUS && printf 'Restoring files staged by this command...'
+  $VERBOSE && printf 'Restoring files staged by this command...'
   if ! git restore --staged "${ADDED_FILES[*]}"; then
     printf 'Failed to restore files staged by git wip create.\nFile list:\n%s\n' "${ADDED_FILES[*]}"
     exit 1
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 }
 
 cleanup_delete_temp_branch()
 {
-  $VERBOUS && printf 'Deleting the temporary branch created by this command...'
+  $VERBOSE && printf 'Deleting the temporary branch created by this command...'
   if ! git branch -q -D "$TEMP_BRANCH_NAME"; then
     printf 'Failed to delete the temporary branch used to create WIP commit\n'
     if [[ "$TEMP_BRANCH_NAME" = "" ]]; then
@@ -78,12 +78,12 @@ cleanup_delete_temp_branch()
       printf 'Temporary branch name is %s\n' "$TEMP_BRANCH_NAME"
     fi
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 }
 
 cleanup_checkout_previous_commit()
 {
-  $VERBOUS && printf 'Checking out the previous commit...'
+  $VERBOSE && printf 'Checking out the previous commit...'
   if [[ $WAS_ON_BRANCH = true ]]; then
     if ! git switch -q "$BRANCH_NAME_BEFORE"; then
       printf 'Failed to switch to the original branch\n'
@@ -95,26 +95,26 @@ cleanup_checkout_previous_commit()
       exit 1
     fi
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 }
 
 cleanup_restore_all_and_add_files_staged_before()
 {
-  $VERBOUS && printf 'Restoring from temporary branch %s...' "$TEMP_BRANCH_NAME"
+  $VERBOSE && printf 'Restoring from temporary branch %s...' "$TEMP_BRANCH_NAME"
   if ! git restore --source "$TEMP_BRANCH_NAME" .;then
     printf 'Failed to restore the original state of working tree\n'
     exit 1
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 
-  $VERBOUS && printf 'Adding staged files before this command...'
+  $VERBOSE && printf 'Adding staged files before this command...'
   if [[ "${#STAGED_FILES_BEFORE[@]}" -gt 0 ]]; then
     if ! git add "${STAGED_FILES_BEFORE[@]}" ; then
       printf 'Failed to restore the original state of staging area\n'
       exit 1 
     fi
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 }
 
 # ---------------------------------------------------------------------------- #
@@ -169,12 +169,12 @@ fi
 # If create branch failed, exit
 TEMP_BRANCH_NAME="$PREFIX/temp/$(date +%s)"
 
-$VERBOUS && printf 'Switching to the temporary branch %s...' "$TEMP_BRANCH_NAME"
+$VERBOSE && printf 'Switching to the temporary branch %s...' "$TEMP_BRANCH_NAME"
 if ! git switch -q -c "$TEMP_BRANCH_NAME"; then
 	printf 'Git switch failed it exit code'
 	exit 1;
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
 # --------------------------------------------------------------------------- #
 # Action 2 : Add everything, store which files were on staging area on which stage
@@ -186,14 +186,14 @@ readarray -t STAGED_FILES_BEFORE < <(git diff --name-only --cached HEAD)
 
 if [[ $HAS_CHANGES_TO_COMMIT = true ]]; then
     
-  $VERBOUS && printf 'Adding every changes to the staging area...'
+  $VERBOSE && printf 'Adding every changes to the staging area...'
   # If add failed, clean up
   if ! git add .; then
     printf 'Git add failed. Cleaning up...\n'
     cleanup_delete_temp_branch
     exit 1;
   fi
-  $VERBOUS && printf 'OK\n'
+  $VERBOSE && printf 'OK\n'
 
   # Grab files in the staging area after adding 
   # readarray -t STAGED_FILES_AFTER < <(git diff --name-only --cached --diff-filter=ACMR HEAD)
@@ -224,7 +224,7 @@ This is a commit created by jan9won/git-wip-command library.
 It's recommended not to interact with this commit directly, but rather use the library.
 "
 
-$VERBOUS && printf 'Creating a commit...'
+$VERBOSE && printf 'Creating a commit...'
 # If commit failed, clean up 
 if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   printf 'Commit failed. Cleaning up...\n'
@@ -233,7 +233,7 @@ if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   cleanup_delete_temp_branch
 	exit 1;
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
 # --------------------------------------------------------------------------- #
 # Action 4 : Create a Tag
@@ -250,38 +250,38 @@ cleanup_procedure_create_tag(){
   cleanup_delete_temp_branch
 }
 
-$VERBOUS && printf 'Creating a temporary file to write tag message...'
+$VERBOSE && printf 'Creating a temporary file to write tag message...'
 if ! touch "$TEMP_FILE_NAME"; then
   printf 'Failed to create file. Cleaning up...\n'
   cleanup_procedure_create_tag
   exit 1
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
-$VERBOUS && printf 'Writing a list of newly added files to the temporary file...'
+$VERBOSE && printf 'Writing a list of newly added files to the temporary file...'
 added_files_newline_separated=$(printf '%s\n' "${ADDED_FILES[@]}")
 if ! printf 'This is a WIP tag created with git-wip-commit library\n\n%s' "$added_files_newline_separated" > "$TEMP_FILE_NAME"; then
   printf 'Failed while writing to the file. Cleaning up...\n'
   cleanup_procedure_create_tag
   exit 1
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
-$VERBOUS && printf 'Creating a tag...'
+$VERBOSE && printf 'Creating a tag...'
 if ! git tag -a "$TAG_NAME" -F "$TEMP_FILE_NAME"; then
   printf 'Create tag failed. Cleaning up...\n' 
   cleanup_procedure_create_tag
   exit 1
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
-$VERBOUS && printf 'Deleting the temporary file...'
+$VERBOSE && printf 'Deleting the temporary file...'
 if ! rm "$TEMP_FILE_NAME"; then
   printf 'Failed while deleting the file. Cleaning up...\n'
   cleanup_procedure_create_tag
   exit 1
 fi
-$VERBOUS && printf 'OK\n'
+$VERBOSE && printf 'OK\n'
 
 # --------------------------------------------------------------------------- #
 # Action 5 : Restore to original state of working tree and staging area

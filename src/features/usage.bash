@@ -53,13 +53,13 @@ Description     List WIP tags in the local repository
 --format=<raw|pretty|long>
 
                 Choose a level of information to print for each WIP commit.
-                
-                <raw> (default)
+
+                <pretty> (default)
+                Print locale-formatted time string and short commit hash
+
+                <raw> 
                 Print raw tag name, which is consisted of a UNIX timestamp
                 and full commit hash.
-
-                <pretty>
-                Print locale-formatted time string and short commit hash
 
                 <long>
                 Print raw tag name, locale-formatted time string and full
@@ -72,9 +72,40 @@ Description     List WIP tags in the local repository
 # ---------------------------------------------------------------------------- #
 
 CONFIG="
-usage           git wip config <variable> <value>
+usage           git wip config <variable> [<value>]
+                git wip config [options]
 
-<variable>
+<variable>      A git config key, which consists of section, subsection and key
+<value>         Value for the given key
+
+                A list of available key-value pairs are following
+
+                1.  prefix = <alphanumeric_string>
+                    This is a prefix used for tag names
+
+                2.  remote-timeout = <positive integer>
+                    Timeout in seconds, used when querying remote repositories
+
+[options]
+
+--get-all       Show all configs set under the section \"jan9won.git-wip-config\"
+"
+
+# ---------------------------------------------------------------------------- #
+# Restore
+# ---------------------------------------------------------------------------- #
+
+RESTORE="
+usage           git wip restore [options] <refname>
+
+<refname>       A name of reference pointing to the WIP commit to restore from
+                
+                A list of possible refname is following
+
+                - A full or unique partial tag name (e.g., wip/1234567890/123)
+                - A full or unique partial commit hash (e.g., 1234567)
+
+[options]
 
 prefix          prefix used for tag names
 remote-timeout  timeout in seconds, used when querying remote repositories
@@ -85,6 +116,10 @@ remote-timeout  timeout in seconds, used when querying remote repositories
 # ---------------------------------------------------------------------------- #
 
 case $1 in
+  config)
+    printf '%s' "$CONFIG"
+    exit 0;
+    ;;
   create)
     printf '%s' "$CREATE"
     exit 0;
@@ -93,8 +128,8 @@ case $1 in
     printf '%s' "$LS"
     exit 0;
     ;;
-  config)
-    printf '%s' "$CONFIG"
+  restore)
+    printf '%s' "$RESTORE"
     exit 0;
     ;;
 esac
