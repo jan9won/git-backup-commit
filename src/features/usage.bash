@@ -41,7 +41,6 @@ Description     List WIP tags in the local repository
 --<before|after>=<timestamp>
 
                 List WIP commits created before or after the <timestamp>.
-
                 Both --before and --after are inclusive. They can be used at the
                 same time. However if the same flag is provided multiple times,
                 only the first one will be used.
@@ -49,7 +48,6 @@ Description     List WIP tags in the local repository
                 <timestamp> is a unix timestamp. You can use commands like
                 \`date -d \"<datetime_string>\" +%s\` to get it.
           
-
 --format=<raw|pretty|long>
 
                 Choose a level of information to print for each WIP commit.
@@ -76,13 +74,11 @@ usage           git wip config <variable> [<value>]
                 git wip config [options]
 
 <variable>      A git config key, which consists of section, subsection and key
-<value>         Value for the given key
 
-                A list of available key-value pairs are following
-
+<value>         Value for the given key.
+                A list of available key-value pairs are following:
                 1.  prefix = <alphanumeric_string>
-                    This is a prefix used for tag names
-
+                    A prefix used for tag names
                 2.  remote-timeout = <positive integer>
                     Timeout in seconds, used when querying remote repositories
 
@@ -98,17 +94,44 @@ usage           git wip config <variable> [<value>]
 RESTORE="
 usage           git wip restore [options] <refname>
 
-<refname>       A name of reference pointing to the WIP commit to restore from
-                
-                A list of possible refname is following
-
+<refname>       A name of reference pointing to the WIP commit to restore from.
+                A list of possible refname is following:
                 - A full or unique partial tag name (e.g., wip/1234567890/123)
                 - A full or unique partial commit hash (e.g., 1234567)
 
 [options]
 
-prefix          prefix used for tag names
-remote-timeout  timeout in seconds, used when querying remote repositories
+-v|--verbose    Print process
+"
+
+# ---------------------------------------------------------------------------- #
+# Delete
+# ---------------------------------------------------------------------------- #
+
+DELETE="
+usage           git wip delete [options] [<refname>]
+
+<refname>       A name of reference pointing to the WIP commit to restore from.
+                A list of possible refname is following:
+                - A full or unique partial tag name (e.g., wip/1234567890/123)
+                - A full or unique partial commit hash (e.g., 1234567)
+
+[options]
+
+-v|--verbose    Print process
+
+-a|--all        Delete all the WIP commits.
+                Can't be used with --before, --after or <refname>(s)
+
+--<before|after>=<timestamp>
+
+                Delete all WIP commits created before or after the <timestamp>.
+                Both --before and --after are inclusive. They can be used at the
+                same time. However if the same flag is provided multiple times,
+                only the first one will be used.
+
+                <timestamp> is a unix timestamp. You can use commands like
+                \`date -d \"<datetime_string>\" +%s\` to get it.
 "
 
 # ---------------------------------------------------------------------------- #
@@ -130,6 +153,10 @@ case $1 in
     ;;
   restore)
     printf '%s' "$RESTORE"
+    exit 0;
+    ;;
+  delete)
+    printf '%s' "$DELETE"
     exit 0;
     ;;
 esac

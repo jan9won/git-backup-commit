@@ -81,8 +81,6 @@ fi
 # Get all WIP tags 
 # ---------------------------------------------------------------------------- #
 
-PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
-TAG_PATTERN="^$PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40}$"
 readarray -t WIP_TAGS < <(git tag --sort=refname | grep -E "$TAG_PATTERN")
 
 # ---------------------------------------------------------------------------- #
