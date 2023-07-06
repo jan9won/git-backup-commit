@@ -6,7 +6,6 @@
 
 # Input
 KEY=$1
-ALL_TAGS=$2
 
 # Output
 TAG_NAME=""

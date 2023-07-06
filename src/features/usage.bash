@@ -48,18 +48,18 @@ Description     List WIP tags in the local repository
                 <timestamp> is a unix timestamp. You can use commands like
                 \`date -d \"<datetime_string>\" +%s\` to get it.
           
---format=<raw|pretty|long>
+--format=<long|short|status>
 
                 Choose a level of information to print for each WIP commit.
 
-                <pretty> (default)
+                <long> (default)
                 Print locale-formatted time string and short commit hash
 
-                <raw> 
+                <short> 
                 Print raw tag name, which is consisted of a UNIX timestamp
                 and full commit hash.
 
-                <long>
+                <status>
                 Print raw tag name, locale-formatted time string and full
                 list of committed files (result of \`git show --name-status\`).
                 The files that have added by this library is marked with \"+\".
