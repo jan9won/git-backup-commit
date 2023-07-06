@@ -24,7 +24,7 @@ get_script_path () {
 
 SCRIPT_PATH=$(get_script_path)
 VERIFY_TIMESTAMP=$(readlink -f "$SCRIPT_PATH/../utils/verify-timestamp.bash")
-HELP_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash" "delete")
+HELP_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
 FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
 
@@ -41,8 +41,13 @@ KEYWORD_LIST=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     help)
-      "$SCRIPT_PATH/usage.bash" "delete"
+      "$HELP_PATH" "delete"
       exit 0
+      ;;
+
+    -v|--verbose)
+      VERBOSE=true;
+      shift
       ;;
 
     -a|--all)
@@ -91,7 +96,7 @@ fi
 
 if [[ "$ALL" == "false" && $TIME_BEFORE == "" && $TIME_AFTER == "" && "${#KEYWORD_LIST[@]}" -eq 0 ]]; then
   printf -- 'At least one option or refname should be provided\n'
-  "$HELP_PATH"
+  "$HELP_PATH" "delete"
   exit 1
 fi
 
@@ -107,11 +112,9 @@ if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
   for keyword in "${KEYWORD_LIST[@]}"; do
 
     # Resolve given keyword to tag name 
-    $VERBOSE && printf 'Searching for the WIP commit with the give argument %s...\n' "$keyword"
+    $VERBOSE && printf 'Searching for the WIP commit with the give argument %s\n' "$keyword"
 
-    if ! tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$KEY") ; then
-      continue
-    else
+    if tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$keyword") ; then
       $VERBOSE && printf 'Found %s\n' "$tag_name"
       WIP_TAGS+=("$tag_name")
     fi
