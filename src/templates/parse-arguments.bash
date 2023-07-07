@@ -27,7 +27,9 @@ while [[ $# -gt 0 ]]; do
       exit 1
       ;;
     *)
-      ARGS+=("$1")
+      if [[ "$1" != "" ]];then
+        ARGS+=("$1")
+      fi
       shift
      ;;
   esac

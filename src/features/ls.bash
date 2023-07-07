@@ -134,7 +134,7 @@ fi
 
 if [[ "$REMOTE" != "" ]]; then
 
-  if ! "$PREPARE_REMOTE" "${BASH_REMATCH[1]}" "$($VERBOSE && printf -- '--verbose')" ; then
+  if ! "$PREPARE_REMOTE" "$REMOTE" "$($VERBOSE && printf -- '--verbose')" ; then
     exit 1
   fi
 

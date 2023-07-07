@@ -1,4 +1,4 @@
-
+#!/usr/bin/env bash
 
 VERBOSE=false
 
@@ -13,9 +13,7 @@ while [[ $# -gt 0 ]]; do
       exit 1
       ;;
     *)
-      if [[ "$1" != "" ]]; then
-        ARGS+=("$1")
-      fi
+      ARGS+=("$1")
       shift
       ;;
   esac
@@ -35,8 +33,6 @@ if [[ ${#ARGS[@]} -eq 1 ]]; then
   REMOTE_NAME=${ARGS[0]}
   shift
 fi
-
-
 
 # ---------------------------------------------------------------------------- #
 # Get path of the directory this script is included
@@ -58,48 +54,35 @@ get_script_path () {
 }
 
 SCRIPT_PATH=$(get_script_path)
-USAGE_PATH=$(readlink -f "$SCRIPT_PATH/../features/usage.bash") 
+USAGE_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash") 
+LS_PATH=$(readlink -f "$SCRIPT_PATH/ls.bash")
 
 # ---------------------------------------------------------------------------- #
-# Get remote name (given as the first parameter), check if not empty
+# Compare remote WIP tags with local WIP tags
 # ---------------------------------------------------------------------------- #
 
-if [[ $REMOTE_NAME = "" ]]; then
-  printf 'Remote name is not given (got an empty string)\n'
+REMOTE_PUSH_COMMAND="git push $REMOTE_NAME"
+readarray -t REMOTE_WIP_TAGS < <("$LS_PATH" "--remote=$REMOTE_NAME" "--format=short")
+readarray -t LOCAL_WIP_TAGS < <("$LS_PATH" "--format=short")
+
+# echo "${REMOTE_WIP_TAGS[@]}"
+# echo "${LOCAL_WIP_TAGS[@]}"
+
+for local in "${LOCAL_WIP_TAGS[@]}"; do
+  for remote in "${REMOTE_WIP_TAGS[@]}"; do
+    if [[ "$local" == "$remote" ]]; then
+      continue 2
+    fi
+  done
+  REMOTE_PUSH_COMMAND+=" tag $local"
+done
+
+
+# ---------------------------------------------------------------------------- #
+# Delete
+# ---------------------------------------------------------------------------- #
+
+if ! $REMOTE_PUSH_COMMAND; then
   exit 1
 fi
-
-# ---------------------------------------------------------------------------- #
-# Check if the remote actually exists
-# ---------------------------------------------------------------------------- #
-
-# Get remote timeout config
-REMOTE_TIMEOUT=$(git config jan9won.git-wip-commit.remote-timeout)
-if [[ $REMOTE_TIMEOUT = "" ]]; then
-  REMOTE_TIMEOUT="10"
-fi
-
-$VERBOSE && printf 'Checking if the remote repository "%s" is accessible (%ss timeout)...\n' "$REMOTE_NAME" "$REMOTE_TIMEOUT"
-
-timeout "$REMOTE_TIMEOUT" git ls-remote --exit-code "$REMOTE_NAME" 1>/dev/null
-EXIT_CODE="$?"
-
-case "$EXIT_CODE" in
-  128)
-    exit 1;
-    ;;
-  124)
-    printf 'Remote repository "%s" has not responded in %s seconds.\n' "$REMOTE_NAME" "$REMOTE_TIMEOUT"
-    printf 'If you want to change the default timeout, configure it through "git wip config remote-timeout <seconds>.\n' 
-    $USAGE_PATH "config"
-    exit 1
-    ;;
-  0)
-    $VERBOSE && printf 'OK\n'
-    exit 0
-    ;;
-  *)
-    printf 'Unhandled error %s occured while running "git ls-remote %s"\n' "$EXIT_CODE" "$REMOTE_NAME"
-    exit 1
-esac
 
