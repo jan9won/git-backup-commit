@@ -21,6 +21,7 @@ get_script_path () {
 
 SCRIPT_PATH=$(get_script_path)
 VERIFY_TIMESTAMP=$(readlink -f "$SCRIPT_PATH/../utils/verify-timestamp.bash")
+PREPARE_REMOTE=$(readlink -f "$SCRIPT_PATH/../utils/prepare-remote.bash")
 USAGE_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
 FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 
@@ -48,8 +49,17 @@ while [[ $# -gt 0 ]]; do
 
     --remote=*)
 
-      [[ "$1" =~ ^--remote=(.*)$ ]]
-      REMOTE="${BASH_REMATCH[1]}"
+      if [[ "$REMOTE" != "" ]];then
+        continue
+      fi
+
+      if [[ "$1" =~ ^--remote=(.{1,})$ ]]; then
+        REMOTE="${BASH_REMATCH[1]}"
+      else
+        printf 'Remote name is not given\n'
+        exit 1
+      fi
+
       shift
       ;;
 
@@ -123,15 +133,19 @@ if [[ "$REMOTE" == "" ]]; then
 fi
 
 if [[ "$REMOTE" != "" ]]; then
+
+  if ! "$PREPARE_REMOTE" "${BASH_REMATCH[1]}" "$($VERBOSE && printf -- '--verbose')" ; then
+    exit 1
+  fi
+
   readarray -t remote_tags_with_prefix < <(git ls-remote "$REMOTE" refs/tags/"$PREFIX"/* | grep -v "\^{}")
   for remote_object in "${remote_tags_with_prefix[@]}"; do
-    [[ "$remote_object" =~ refs/tags/($PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40})$ ]]
-
-    remote_tag="${BASH_REMATCH[1]}"
-    if [[ "$remote_tag" =~ $TAG_PATTERN ]]; then
+    if [[ "$remote_object" =~ refs/tags/($PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40})$ ]]; then
+      remote_tag="${BASH_REMATCH[1]}"
       WIP_TAGS+=("$remote_tag")
     fi
   done
+
 fi
 
 if [[ "${#WIP_TAGS[@]}" -eq 0 ]]; then

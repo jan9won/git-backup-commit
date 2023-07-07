@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# echo "push.bash: $@"
 
-# current_branch_name=$(git branch --show-current); 
-# backup_branch_name=backup-$(date +%s); 
-# git switch -c "$backup_branch_name"; 
-# git add .; 
-# git commit -m "$backup_branch_name" && git push backup "$backup_branch_name"; 
-# git switch "$current_branch_name"; 
-# git restore --source "$backup_branch_name" .;; 
+REMOTE=""
+PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
+
+readarray -t LOCAL_WIP_COMMITS < <(git wip ls --format=short)
+readarray -t REMOTE_WIP_COMMITS < <(git ls-remote "$REMOTE" refs/tags/"$PREFIX")
+
+for local_wip_commit in "${LOCAL_WIP_COMMITS[@]}"; do
+
+  echo "$local_wip_commit"
+done

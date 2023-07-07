@@ -1,3 +1,41 @@
+
+
+VERBOSE=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -v|--verbose)
+      VERBOSE=true
+      shift
+      ;;
+    -*)
+      printf 'Illegal option %s\n' "$1"
+      exit 1
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#ARGS[@]} -gt 1 ]]; then
+  printf 'Too many arguments, expected 1\n'
+  exit 1
+fi
+
+if [[ ${#ARGS[@]} -eq 0 ]]; then
+  printf 'Argument is required\n'
+  exit 1
+fi
+
+if [[ ${#ARGS[@]} -eq 1 ]]; then
+  REMOTE_NAME=${ARGS[0]}
+  shift
+fi
+
+
+
 # ---------------------------------------------------------------------------- #
 # Get path of the directory this script is included
 # ---------------------------------------------------------------------------- #
@@ -24,8 +62,6 @@ USAGE_PATH=$(readlink -f "$SCRIPT_PATH/../features/usage.bash")
 # Get remote name (given as the first parameter), check if not empty
 # ---------------------------------------------------------------------------- #
 
-REMOTE_NAME=$1
-
 if [[ $REMOTE_NAME = "" ]]; then
   printf 'Remote name is not given (got an empty string)\n'
   exit 1
@@ -41,9 +77,12 @@ if [[ $REMOTE_TIMEOUT = "" ]]; then
   REMOTE_TIMEOUT="10"
 fi
 
-printf 'Checking if the remote repository "%s" is accessible (%ss timeout)...\n' "$REMOTE_NAME" "$REMOTE_TIMEOUT"
+$VERBOSE && printf 'Checking if the remote repository "%s" is accessible (%ss timeout)...\n' "$REMOTE_NAME" "$REMOTE_TIMEOUT"
 
-case $(timeout "$REMOTE_TIMEOUT" git ls-remote "$REMOTE_NAME" 1>/dev/null) in
+timeout "$REMOTE_TIMEOUT" git ls-remote --exit-code "$REMOTE_NAME" 1>/dev/null
+EXIT_CODE="$?"
+
+case "$EXIT_CODE" in
   128)
     exit 1;
     ;;
@@ -53,7 +92,12 @@ case $(timeout "$REMOTE_TIMEOUT" git ls-remote "$REMOTE_NAME" 1>/dev/null) in
     $USAGE_PATH "config"
     exit 1
     ;;
+  0)
+    $VERBOSE && printf 'OK\n'
+    exit 0
+    ;;
   *)
-    printf 'Unknown error occured while running "git ls-remote"'
+    printf 'Unhandled error %s occured while running "git ls-remote %s"\n' "$EXIT_CODE" "$REMOTE_NAME"
+    exit 1
 esac
 
