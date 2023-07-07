@@ -18,7 +18,6 @@ get_script_path () {
 }
 
 SCRIPT_PATH=$(get_script_path)
-
 USAGE_PATH=$(readlink -f "$SCRIPT_PATH/../features/usage.bash") 
 
 # ---------------------------------------------------------------------------- #

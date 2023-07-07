@@ -1,7 +1,7 @@
 # Git-WIP-Commit
 
 > Tests
-> 
+>
 > ![Integration And Entry](https://github.com/jan9won/git-wip-commit/actions/workflows/installation-and-entry.yml/badge.svg)
 
 ## Table of Contents
@@ -84,10 +84,15 @@
     *   It still creates extra commmits and tags
     *   Log will show WIP commits with options like `git log --all` or `git log --tags`
 
-2.  It’s not resilient to destructive commands
+2.  Deletion relies on git's garbage collection
+    *   Commands like `delete` or `delete-remote` only deletes WIP tags (which are created by this library)
+    *   If there are other references left on the WIP commit, (which shouldn't in normal use cases), the commit won't be deleted
+    *   Also, commits may not get deleted immediately after deletion commands.
+
+3.  It’s not resilient to destructive commands
     *   If you accidentally delete WIP commit’s tag, the commit becomes a dangling commit, and will be deleted in the next garbage collection routine
 
-3.  WIP Commits are not 100% private
+4.  WIP Commits are not 100% private
     *   They can still be pushed to any remote if specified explicitly
     *   E.g., `git push <remote> <tag_name>`
     *   Though it isn't likely to happen, as tag names are long and complex

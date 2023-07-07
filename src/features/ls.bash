@@ -21,7 +21,7 @@ get_script_path () {
 
 SCRIPT_PATH=$(get_script_path)
 VERIFY_TIMESTAMP=$(readlink -f "$SCRIPT_PATH/../utils/verify-timestamp.bash")
-HELP_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
+USAGE_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
 FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 
 # ---------------------------------------------------------------------------- #
@@ -32,11 +32,12 @@ VERBOSE=false
 TIME_BEFORE=""
 TIME_AFTER=""
 FORMAT="long"
+REMOTE=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     help)
-			"$SCRIPT_PATH/usage.bash" "ls"
+			"$USAGE_PATH" "ls"
       exit 0
       ;;
 
@@ -45,9 +46,16 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
 
+    --remote=*)
+
+      [[ "$1" =~ ^--remote=(.*)$ ]]
+      REMOTE="${BASH_REMATCH[1]}"
+      shift
+      ;;
+
     --before=*|--after=*)
 
-      [[ "$1" =~ --(before|after)=([0-9]{1,}) ]]
+      [[ "$1" =~ ^--(before|after)=([0-9]{1,})$ ]]
 
       if ! $VERIFY_TIMESTAMP "${BASH_REMATCH[2]}"; then
         exit 1
@@ -85,34 +93,49 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ "$REMOTE" != "" && "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
+  printf 'Refname(s) cannot be queries when --remote option is set.\n'
+  exit 1
+fi
+
 # ---------------------------------------------------------------------------- #
 # Find all WIP tags according to given arguments
 # ---------------------------------------------------------------------------- #
 
 PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
-TAG_PATTERN="^$PREFIX/([0-9]{10,})/([a-zA-Z0-9]{40})$"
 WIP_TAGS=()
 
-if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
-
-  for keyword in "${KEYWORD_LIST[@]}"; do
-    # Resolve given keyword to tag name 
-    $VERBOSE && printf 'Searching for the WIP commit with the give argument %s\n' "$keyword"
-    if tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$keyword") ; then
-      $VERBOSE && printf 'Found %s\n' "$tag_name"
-      WIP_TAGS+=("$tag_name")
-    else
-      printf '%s\n' "$tag_name"
-    fi
-  done
-
-else
-  readarray -t WIP_TAGS < <(git tag --sort=refname | grep -E "$TAG_PATTERN")
+if [[ "$REMOTE" == "" ]]; then
+  if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
+    for keyword in "${KEYWORD_LIST[@]}"; do
+      # Resolve given keyword to tag name 
+      $VERBOSE && printf 'Searching for the WIP commit with the give argument %s\n' "$keyword"
+      if tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$keyword") ; then
+        $VERBOSE && printf 'Found %s\n' "$tag_name"
+        WIP_TAGS+=("$tag_name")
+      else
+        printf '%s\n' "$tag_name"
+      fi
+    done
+  else
+    readarray -t WIP_TAGS < <(git tag --sort=refname | grep -E "^$PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40}$")
+  fi
 fi
 
+if [[ "$REMOTE" != "" ]]; then
+  readarray -t remote_tags_with_prefix < <(git ls-remote "$REMOTE" refs/tags/"$PREFIX"/* | grep -v "\^{}")
+  for remote_object in "${remote_tags_with_prefix[@]}"; do
+    [[ "$remote_object" =~ refs/tags/($PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40})$ ]]
+
+    remote_tag="${BASH_REMATCH[1]}"
+    if [[ "$remote_tag" =~ $TAG_PATTERN ]]; then
+      WIP_TAGS+=("$remote_tag")
+    fi
+  done
+fi
 
 if [[ "${#WIP_TAGS[@]}" -eq 0 ]]; then
-  printf 'No WIP tags are found with given argument(s)\n'
+  printf 'Could not find WIP tags with given parameter(s)\n'
   exit 1
 fi
 
@@ -146,7 +169,7 @@ for tag in "${WIP_TAGS[@]}"; do
   # Formatted printing
 
   if [[ $FORMAT == "short" ]]; then
-    printf '%s\n\n' "$tag"
+    printf '%s\n' "$tag"
 
   elif [[ $FORMAT == "long" ]]; then
     printf 'tag\t%s\ndate\t%s\nhash\t%s\n\n' "$tag" "$TIME_STRING" "${COMMIT_HASH:0:7}"
