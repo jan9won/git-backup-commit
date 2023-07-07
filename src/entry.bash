@@ -70,14 +70,19 @@ while [[ "$#" -gt 0 ]]; do
 			"$SCRIPT_PATH/features/delete.bash" "$@"
       exit 0;
 			;;
-		push)
+		push-remote)
 			shift;
-			"$SCRIPT_PATH/features/push.bash" "$@"
+			"$SCRIPT_PATH/features/push-remote.bash" "$@"
       exit 0;
 			;;
-		fetch)
+		fetch-remote)
 			shift;
-		  "$SCRIPT_PATH/features/fetch.bash" "$@"
+		  "$SCRIPT_PATH/features/fetch-remote.bash" "$@"
+      exit 0;
+			;;
+		prune-remote)
+			shift;
+		  "$SCRIPT_PATH/features/prune-remote.bash" "$@"
       exit 0;
 			;;
 		-*)
