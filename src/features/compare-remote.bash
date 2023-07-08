@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
+PORCELAIN=false
+SHOW_COMMONS=false
+
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --porcelain)
+      PORCELAIN=true
+      shift
+      ;;
+    --show-commons)
+      SHOW_COMMONS=true
+      shif
+      ;;
     -*)
       printf 'Illegal option %s\n' "$1"
       exit 1
@@ -90,7 +101,32 @@ done
 LOCAL_WIP_TAGS=("${LOCAL_WIP_TAGS[@]}")
 REMOTE_WIP_TAGS=("${REMOTE_WIP_TAGS[@]}")
 
-printf '%s\n' "${LOCAL_WIP_TAGS[*]}"
-printf '%s\n' "${REMOTE_WIP_TAGS[*]}"
-printf '%s\n' "${COMMON_ITEMS[*]}"
+if $PORCELAIN; then
+  printf '%s\n' "${LOCAL_WIP_TAGS[*]}"
+  printf '%s\n' "${REMOTE_WIP_TAGS[*]}"
+  printf '%s\n' "${COMMON_ITEMS[*]}"
+else
+  printf 'WIP tags that are unique to this local repository:\n'
+  if [[ "${#LOCAL_WIP_TAGS[@]}" -gt 0 ]]; then
+    printf '%s\n' "${LOCAL_WIP_TAGS[@]}"
+  else
+    printf '(none)\n'
+  fi
+
+  printf '\nWIP tags that are unique to the given remote repository:\n'
+  if [[ "${#REMOTE_WIP_TAGS[@]}" -gt 0 ]]; then
+    printf '%s\n' "${REMOTE_WIP_TAGS[@]}"
+  else
+    printf '(none)\n'
+  fi
+
+  if $SHOW_COMMONS; then
+    printf '\nWIP tags that are common between local and remote repository:\n'
+    if [[ "${#COMMON_ITEMS[@]}" -gt 0 ]]; then
+      printf '%s\n' "${COMMON_ITEMS[@]}"
+    else
+      printf '(none)\n'
+    fi
+  fi
+fi
 

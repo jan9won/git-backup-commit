@@ -20,7 +20,7 @@ get_script_path () {
 SCRIPT_PATH=$(get_script_path)
 
 # --------------------------------------------------------------------------- #
-# Check if called inside a git repository
+# Entry Check 1: if called inside a git repository
 # --------------------------------------------------------------------------- #
 
 IS_GIT_REPO=$(git rev-parse --is-inside-work-tree 2>/dev/null)
@@ -32,7 +32,7 @@ if [[ $IS_GIT_REPO != "true" ]]; then
 fi
 
 # --------------------------------------------------------------------------- #
-# Check if tag prefix is ready
+# Entry Check 2: if tag prefix is ready
 # --------------------------------------------------------------------------- #
 
 if ! "$SCRIPT_PATH/utils/prepare-prefix.bash"; then
@@ -70,6 +70,12 @@ while [[ "$#" -gt 0 ]]; do
 			"$SCRIPT_PATH/features/delete.bash" "$@"
       exit 0;
 			;;
+    # Remotes
+    compare-remote)
+      shift;
+      "$SCRIPT_PATH/features/compare-remote.bash" "$@"
+      exit 0;
+      ;;
 		push-remote)
 			shift;
 			"$SCRIPT_PATH/features/push-remote.bash" "$@"
