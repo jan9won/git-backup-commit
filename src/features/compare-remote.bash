@@ -1,25 +1,13 @@
 #!/usr/bin/env bash
 
-# ---------------------------------------------------------------------------- #
-# Parse arguments
-# ---------------------------------------------------------------------------- #
-
-VERBOSE=false
-
 while [[ $# -gt 0 ]]; do
   case $1 in
-    -v|--verbose)
-      VERBOSE=true
-      shitf
-      ;;
     -*)
       printf 'Illegal option %s\n' "$1"
       exit 1
       ;;
     *)
-      if [[ "$1" != "" ]]; then
-        ARGS+=("$1")
-      fi
+      ARGS+=("$1")
       shift
       ;;
   esac
@@ -60,35 +48,49 @@ get_script_path () {
 }
 
 SCRIPT_PATH=$(get_script_path)
-COMPARE_REMOTE=$(readlink -f "$SCRIPT_PATH/compare-remote.bash")
+LS_PATH=$(readlink -f "$SCRIPT_PATH/ls.bash")
 
 # ---------------------------------------------------------------------------- #
-# Get WIP commits that are on local but aren't on remote
+# Compare remote WIP tags with local WIP tags
 # ---------------------------------------------------------------------------- #
 
-if COMPARE_REMOTE_RESULT_STRING=$("$COMPARE_REMOTE" "$REMOTE_NAME"); then
-  readarray -t COMPARE_REMOTE_RESULT_ARRAY <<< "$COMPARE_REMOTE_RESULT_STRING"
-  read -r -a UNIQUE_LOCAL <<< "${COMPARE_REMOTE_RESULT_ARRAY[0]}"
-  # read -r -a UNIQUE_REMOTE <<< "${COMPARE_REMOTE_RESULT_ARRAY[1]}"
-  # read -r -a COMMON <<< "${COMPARE_REMOTE_RESULT_ARRAY[2]}"
+if REMOTE_WIP_TAGS_STRING=$("$LS_PATH" "--remote=$REMOTE_NAME" "--format=short"); then
+  readarray -t REMOTE_WIP_TAGS <<< "$REMOTE_WIP_TAGS_STRING"
 else
   exit 1
 fi
 
-# ---------------------------------------------------------------------------- #
-# Push
-# ---------------------------------------------------------------------------- #
-
-if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
-  UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_LOCAL[@]}")
+if LOCAL_WIP_TAGS_STRING=$("$LS_PATH" "--format=short"); then
+  readarray -t LOCAL_WIP_TAGS <<< "$LOCAL_WIP_TAGS_STRING"
 else
-  printf 'Remote %s has all the WIP tags that are locally present' "$LOCAL_WIP_TAGS_STRING"
-fi
-
-PUSH_COMMAND="git push $REMOTE_NAME $UNIQUE_LOCAL_TAG_INTERPOLATED"
-if ! eval "$PUSH_COMMAND"; then
-  printf 'Failed while pushing WIP tags to %s\n' "$REMOTE_NAME"
   exit 1
 fi
 
-exit 0
+# echo "${REMOTE_WIP_TAGS[@]}"
+# echo "${LOCAL_WIP_TAGS[@]}"
+
+COMMON_ITEMS=()
+
+for (( local_idx="${#LOCAL_WIP_TAGS[@]}"-1; local_idx>=0; local_idx-- )); do
+  local_tag="${LOCAL_WIP_TAGS[$local_idx]}"
+
+  for (( remote_idx="${#REMOTE_WIP_TAGS[@]}"; remote_idx>=0; remote_idx-- )); do
+    remote_tag="${REMOTE_WIP_TAGS[$remote_idx]}"
+
+    if [[ "$local_tag" == "$remote_tag" ]]; then
+      unset "LOCAL_WIP_TAGS[$local_idx]"
+      unset "REMOTE_WIP_TAGS[$remote_idx]"
+      COMMON_ITEMS+=("$local_tag")
+      continue 2
+    fi
+  done
+done
+
+# remove gaps from arrays
+LOCAL_WIP_TAGS=("${LOCAL_WIP_TAGS[@]}")
+REMOTE_WIP_TAGS=("${REMOTE_WIP_TAGS[@]}")
+
+printf '%s\n' "${LOCAL_WIP_TAGS[*]}"
+printf '%s\n' "${REMOTE_WIP_TAGS[*]}"
+printf '%s\n' "${COMMON_ITEMS[*]}"
+
