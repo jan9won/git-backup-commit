@@ -71,26 +71,31 @@ while [[ "$#" -gt 0 ]]; do
       exit 0;
 			;;
     # Remotes
-    compare-remote)
+    remote)
       shift;
-      "$SCRIPT_PATH/features/compare-remote.bash" "$@"
+      "$SCRIPT_PATH/features/remote.bash" "$@"
       exit 0;
-      ;;
-		push-remote)
-			shift;
-			"$SCRIPT_PATH/features/push-remote.bash" "$@"
-      exit 0;
-			;;
-		fetch-remote)
-			shift;
-		  "$SCRIPT_PATH/features/fetch-remote.bash" "$@"
-      exit 0;
-			;;
-		prune-remote)
-			shift;
-		  "$SCRIPT_PATH/features/prune-remote.bash" "$@"
-      exit 0;
-			;;
+    ;;
+    # compare-remote)
+    #   shift;
+    #   "$SCRIPT_PATH/features/compare-remote.bash" "$@"
+    #   exit 0;
+    # ;;
+    # push-remote)
+    #   shift;
+    #   "$SCRIPT_PATH/features/push-remote.bash" "$@"
+    #   exit 0;
+    # ;;
+    # fetch-remote)
+    #   shift;
+    #   "$SCRIPT_PATH/features/fetch-remote.bash" "$@"
+    #   exit 0;
+    # ;;
+    # prune-remote)
+    #   shift;
+    #   "$SCRIPT_PATH/features/prune-remote.bash" "$@"
+    #   exit 0;
+    # ;;
 		-*)
 			echo "illegal option $1";
       exit 1;
