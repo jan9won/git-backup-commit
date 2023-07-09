@@ -18,7 +18,7 @@ while [[ $# -gt 0 ]]; do
       PORCELAIN=true
       shift
       ;;
-    --compare|--push|--fetch|--prune-local|--prune-remote)
+    --compare|--push|--fetch|--prune-local|--prune-remote|--prune-both)
       if [[ "$COMMAND" == "" ]]; then
         COMMAND="${1/--/}"
       fi
@@ -134,11 +134,14 @@ COMMON_ITEMS=("${COMMON_ITEMS[@]}")
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "compare" ]]; then
+
   if $PORCELAIN; then
     printf '%s\n' "${UNIQUE_LOCAL[*]}"
     printf '%s\n' "${UNIQUE_REMOTE[*]}"
     printf '%s\n' "${COMMON_ITEMS[*]}"
+
   else
+
     printf 'WIP tags that are unique to this local repository:\n'
     if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
       printf '%s\n' "${UNIQUE_LOCAL[@]}"
@@ -172,7 +175,7 @@ if [[ "$COMMAND" == "push" ]]; then
   if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
     UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_LOCAL[@]}")
   else
-    printf 'Remote %s has all the WIP tags that are locally present' "$REMOTE_NAME"
+    printf 'Remote %s has all the WIP tags that are locally present\n' "$REMOTE_NAME"
   fi
 
   PUSH_COMMAND="git push $REMOTE_NAME $UNIQUE_LOCAL_TAG_INTERPOLATED"
@@ -189,7 +192,20 @@ fi
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "fetch" ]]; then
-  echo
+
+  if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
+    UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
+  else
+    printf 'Local repository has all the WIP tags that are present in the remote %s\n' "$REMOTE_NAME"
+  fi
+
+  FETCH_COMMAND="git fetch $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
+  if ! eval "$FETCH_COMMAND"; then
+    printf 'Failed while fetching WIP tags from %s\n' "$REMOTE_NAME"
+    exit 1
+  fi
+
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------- #
@@ -197,7 +213,20 @@ fi
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "prune-local" ]]; then
-  echo
+
+  if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
+    UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf '%s ' "${UNIQUE_LOCAL[@]}")
+  else
+    printf 'Remote %s has no unique WIP tags that are not present in the local repository\n' "$REMOTE_NAME"
+  fi
+
+  PRUNE_LOCAL_COMMAND="git tag -d $UNIQUE_LOCAL_TAG_INTERPOLATED"
+  if ! eval "$PRUNE_LOCAL_COMMAND"; then
+    printf 'Failed while deleting locally unique WIP tags\n'
+    exit 1
+  fi
+
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------- #
@@ -205,5 +234,52 @@ fi
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "prune-remote" ]]; then
-  echo
+
+  if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
+    UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
+  else
+    printf 'Local repository has no unique WIP tags that are not present in the remote %s\n' "$REMOTE_NAME"
+  fi
+
+  PRUNE_REMOTE_COMMAND="git push --delete $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
+  if ! eval "$PRUNE_REMOTE_COMMAND"; then
+    printf 'Failed while deleting WIP tags in %s\n' "$REMOTE_NAME"
+    exit 1
+  fi
+
+  exit 0
+fi
+
+# ---------------------------------------------------------------------------- #
+# Prune-Both
+# ---------------------------------------------------------------------------- #
+
+if [[ "$COMMAND" == "prune-both" ]]; then
+
+
+  if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
+    UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf '%s ' "${UNIQUE_LOCAL[@]}")
+  else
+    printf 'Remote %s has no unique WIP tags that are not present in the local repository\n' "$REMOTE_NAME"
+  fi
+
+  PRUNE_LOCAL_COMMAND="git tag -d $UNIQUE_LOCAL_TAG_INTERPOLATED"
+  if ! eval "$PRUNE_LOCAL_COMMAND"; then
+    printf 'Failed while deleting locally unique WIP tags\n'
+    exit 1
+  fi
+
+  if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
+    UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
+  else
+    printf 'Local repository has no unique WIP tags that are not present in the remote %s\n' "$REMOTE_NAME"
+  fi
+
+  PRUNE_REMOTE_COMMAND="git push --delete $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
+  if ! eval "$PRUNE_REMOTE_COMMAND"; then
+    printf 'Failed while deleting WIP tags in %s\n' "$REMOTE_NAME"
+    exit 1
+  fi
+
+  exit 0
 fi
