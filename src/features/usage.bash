@@ -82,13 +82,13 @@ Available key-value pairs
                 1.  key:    prefix
                     value:  an alphanumeric string
                             * case sensitive
-                            * <= 10 characters
+                            * 2 ~ 10 characters
                     usage:  A prefix used for WIP tag names
 
                 2.  key:    remote-timeout
                     value:  Timeout in seconds
                             * positive integer
-                            * <= 10 seconds
+                            * 2 ~ 10 seconds
                     usage:  Used when querying remote repositories
 
 [options]
