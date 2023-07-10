@@ -70,21 +70,31 @@ Description     List WIP tags in the local repository
 # ---------------------------------------------------------------------------- #
 
 CONFIG="
-usage           git wip config <variable> [<value>]
-                git wip config [options]
+usage           git wip config <key> <value>
+                git wip config [options] [<key>]
 
-<variable>      A git config key, which consists of section, subsection and key
+<key>           A git config key, which consists of section, subsection and key
 
 <value>         Value for the given key.
-                A list of available key-value pairs are following:
-                1.  prefix = <alphanumeric_string>
-                    A prefix used for tag names
-                2.  remote-timeout = <positive integer>
-                    Timeout in seconds, used when querying remote repositories
+
+Available key-value pairs
+
+                1.  key:    prefix
+                    value:  an alphanumeric string
+                            * case sensitive
+                            * <= 10 characters
+                    usage:  A prefix used for WIP tag names
+
+                2.  key:    remote-timeout
+                    value:  Timeout in seconds
+                            * positive integer
+                            * <= 10 seconds
+                    usage:  Used when querying remote repositories
 
 [options]
 
---get-all       Show all configs set under the section \"jan9won.git-wip-config\"
+--get <key>     Show git config named \"jan9won.git-wip-commit.<key>\"
+--get-all       Show all configs set under the section \"jan9won.git-wip-commit\"
 "
 
 # ---------------------------------------------------------------------------- #

@@ -226,7 +226,7 @@ It's recommended not to interact with this commit directly, but rather use the l
 
 $VERBOSE && printf 'Creating a commit...'
 # If commit failed, clean up 
-if ! git commit --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
+if ! git commit --no-gpg-sign --allow-empty -m "$COMMIT_MESSAGE" &> /dev/null; then
   printf 'Commit failed. Cleaning up...\n'
   cleanup_checkout_previous_commit
   cleanup_restore_newly_added_files
