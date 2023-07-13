@@ -139,16 +139,15 @@ fi
 # Prepare remote
 # ---------------------------------------------------------------------------- #
 
-if [[ "$REMOTE_NAME" != "" ]]; then
-  PREPARE_REMOTE_ARGUMENTS=("$REMOTE_NAME")
-fi
 
 if [[ "$VERBOSE_OPTION" == "true" ]]; then
   PREPARE_REMOTE_ARGUMENTS+=("--verbose")
 fi
-
-if ! eval "$PREPARE_REMOTE_PATH ${PREPARE_REMOTE_ARGUMENTS[*]}"; then
-  exit 1
+if [[ "$REMOTE_NAME" != "" ]]; then
+  PREPARE_REMOTE_ARGUMENTS=("$REMOTE_NAME")
+  if ! eval "$PREPARE_REMOTE_PATH ${PREPARE_REMOTE_ARGUMENTS[*]}"; then
+    exit 1
+  fi
 fi
 
 # ---------------------------------------------------------------------------- #
