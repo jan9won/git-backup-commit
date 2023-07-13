@@ -8,15 +8,19 @@ get_script_path () {
   local SOURCE
   local SCRIPT_PATH
   SOURCE=${BASH_SOURCE[0]}
-  while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  # resolve $SOURCE until the file is no longer a symlink
+  while [ -L "$SOURCE" ]; do 
     SCRIPT_PATH=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
     SOURCE=$(readlink "$SOURCE")
-    [[ $SOURCE != /* ]] && SOURCE=$SCRIPT_PATH/$SOURCE # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+    # if $SOURCE was a relative symlink, resolve it relative to it
+    [[ $SOURCE != /* ]] && SOURCE=$SCRIPT_PATH/$SOURCE 
   done
   SCRIPT_PATH=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
   echo "$SCRIPT_PATH"
 }
 
+SCRIPT_PATH=$(get_script_path)
+PREPARE_REMOTE_PATH=$(readlink -f "$SCRIPT_PATH/utils/prepare-remote.bash")
 SCRIPT_PATH=$(get_script_path)
 
 # --------------------------------------------------------------------------- #
@@ -43,70 +47,115 @@ fi
 # Handle highest order argument
 # --------------------------------------------------------------------------- #
 
+COMMAND=""
+COMMAND_PATH=""
+ARGUMENTS=()
+REMOTE_NAME=""
+VERBOSE_OPTION="false"
+
+if [[ "$#" -eq 0 ]]; then
+  printf 'No command is given\n'
+  printf 'Usage: git wip <command> [<args>]\n'
+  exit 1
+fi
+
 while [[ "$#" -gt 0 ]]; do
 	case $1 in
     help)
-      shift;
-			"$SCRIPT_PATH/features/usage.bash"
-      exit 0;
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/usage.bash"
+      shift
       ;;
 		create)
-			shift;
-			"$SCRIPT_PATH/features/create.bash" "$@"
-      exit 0;
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/create.bash"
+      shift;
 			;;
 		ls)
-			shift;
-			"$SCRIPT_PATH/features/ls.bash" "$@"
-      exit 0;
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/ls.bash" 
+      shift;
+			;;
+		ls-remote)
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/ls-remote.bash" 
+      shift;
 			;;
 		restore)
-			shift;
-			"$SCRIPT_PATH/features/restore.bash" "$@"
-      exit 0;
-			;;
-		delete)
-			shift;
-			"$SCRIPT_PATH/features/delete.bash" "$@"
-      exit 0;
-			;;
-    # Remotes
-    remote)
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/restore.bash" 
       shift;
-      "$SCRIPT_PATH/features/remote.bash" "$@"
-      exit 0;
-    ;;
-    # compare-remote)
-    #   shift;
-    #   "$SCRIPT_PATH/features/compare-remote.bash" "$@"
-    #   exit 0;
-    # ;;
-    # push-remote)
-    #   shift;
-    #   "$SCRIPT_PATH/features/push-remote.bash" "$@"
-    #   exit 0;
-    # ;;
-    # fetch-remote)
-    #   shift;
-    #   "$SCRIPT_PATH/features/fetch-remote.bash" "$@"
-    #   exit 0;
-    # ;;
-    # prune-remote)
-    #   shift;
-    #   "$SCRIPT_PATH/features/prune-remote.bash" "$@"
-    #   exit 0;
-    # ;;
-		-*)
-			echo "illegal option $1";
-      exit 1;
-			;;
+      ;;
+		delete)
+      COMMAND="$1"
+			COMMAND_PATH="$SCRIPT_PATH/features/delete.bash" 
+      shift;
+      ;;
+    remote)
+      COMMAND="$1"
+      COMMAND_PATH="$SCRIPT_PATH/features/remote.bash" 
+      shift;
+      REMOTE_NAME="$1"
+      ARGUMENTS+=("$1")
+      shift;
+      ;;
+    --remote=*)
+      if [[ "$REMOTE_NAME" != "" ]];then
+        printf '[Warn] option --remote is given multiple times, only the last one will be used.\n'
+      fi
+      if [[ "$1" =~ ^--remote=(.{1,})$ ]]; then
+        REMOTE_NAME="${BASH_REMATCH[1]}"
+      else
+        printf 'Remote name is not given\n'
+        exit 1
+      fi
+      ARGUMENTS+=("$1")
+      shift
+      ;;
+    -v|--verbose)
+      VERBOSE_OPTION="true"
+      ARGUMENTS+=("$1")
+      shift
+      ;;
 		*)
-			echo "illegal command $1"
-      exit 1;
+      if [[ "$1" != "" ]]; then
+        ARGUMENTS+=("$1")
+      fi
+      shift;
 			;;
 	esac
 done
 
-"$SCRIPT_PATH/features/usage.bash"
-exit 0
+# ---------------------------------------------------------------------------- #
+# Filter bad commands
+# ---------------------------------------------------------------------------- #
+
+if [[ "$COMMAND" == "" ]]; then
+  printf 'Illegal command %s\n' "${ARGUMENTS[0]}"
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------- #
+# Prepare remote
+# ---------------------------------------------------------------------------- #
+
+if [[ "$REMOTE_NAME" != "" ]]; then
+  PREPARE_REMOTE_ARGUMENTS=("$REMOTE_NAME")
+fi
+
+if [[ "$VERBOSE_OPTION" == "true" ]]; then
+  PREPARE_REMOTE_ARGUMENTS+=("--verbose")
+fi
+
+if ! eval "$PREPARE_REMOTE_PATH ${PREPARE_REMOTE_ARGUMENTS[*]}"; then
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------- #
+# Call command script
+# ---------------------------------------------------------------------------- #
+
+if ! eval "$COMMAND_PATH ${ARGUMENTS[*]}"; then
+  exit 1
+fi
 

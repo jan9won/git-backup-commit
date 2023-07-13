@@ -77,7 +77,7 @@ if [[ ${#ARGS[@]} -eq 2 ]]; then
 fi
 
 if [[ ${#ARGS[@]} -gt 2 ]]; then
-  printf 'Too many arguments\n'
+  printf 'Too many arguments for config.bash (expected 1 or 2)\n'
   exit 1
 fi
 

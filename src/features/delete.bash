@@ -25,7 +25,7 @@ get_script_path () {
 SCRIPT_PATH=$(get_script_path)
 VERIFY_TIMESTAMP=$(readlink -f "$SCRIPT_PATH/../utils/verify-timestamp.bash")
 HELP_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
-FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
+LS_PATH=$(readlink -f "$SCRIPT_PATH/ls.bash")
 
 # ---------------------------------------------------------------------------- #
 # Parse arguments
@@ -46,6 +46,22 @@ while [[ $# -gt 0 ]]; do
 
     -v|--verbose)
       VERBOSE=true;
+      shift
+      ;;
+
+    --remote=*)
+
+      if [[ "$REMOTE" != "" ]];then
+        continue
+      fi
+
+      if [[ "$1" =~ ^--remote=(.{1,})$ ]]; then
+        REMOTE="${BASH_REMATCH[1]}"
+      else
+        printf 'Remote name is not given\n'
+        exit 1
+      fi
+
       shift
       ;;
 
@@ -94,80 +110,69 @@ if [[ "$ALL" == "true" && ($TIME_BEFORE != "" || $TIME_AFTER != ""|| "${#KEYWORD
 fi
 
 if [[ "$ALL" == "false" && $TIME_BEFORE == "" && $TIME_AFTER == "" && "${#KEYWORD_LIST[@]}" -eq 0 ]]; then
-  printf -- 'At least one option or refname should be provided\n'
-  "$HELP_PATH" "delete"
+  printf -- 'At least one filter option or refname should be provided\n'
   exit 1
 fi
 
 # ---------------------------------------------------------------------------- #
-# Find all WIP tags according to given arguments
+# Find WIP tags according to given arguments
 # ---------------------------------------------------------------------------- #
 
-PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
-TAG_PATTERN="^$PREFIX/([0-9]{10,})/([a-zA-Z0-9]{40})$"
 WIP_TAGS=()
+LS_COMMAND_ARGUMENTS=("--format=short")
 
+if [[ "$VERBOSE" == "true" ]]; then
+  LS_COMMAND_ARGUMENTS+=("--verbose")
+fi
+
+# when remote
+if [[ "$REMOTE" != "" ]]; then
+  LS_COMMAND_ARGUMENTS+=("--remote=$REMOTE")
+fi
+
+# when arguments exist
 if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
-
-  for keyword in "${KEYWORD_LIST[@]}"; do
-
-    # Resolve given keyword to tag name 
-    $VERBOSE && printf 'Searching for the WIP commit with the give argument %s\n' "$keyword"
-
-    if tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$keyword") ; then
-      $VERBOSE && printf 'Found %s\n' "$tag_name"
-      WIP_TAGS+=("$tag_name")
-    fi
-
-  done
+  LS_COMMAND_ARGUMENTS+=("${KEYWORD_LIST[@]}")
 fi
 
-if $ALL ; then
-  readarray -t WIP_TAGS < <(git tag --sort=refname | grep -E "$TAG_PATTERN")
+# with --before 
+if [[ "$TIME_BEFORE" != "" ]]; then
+  LS_COMMAND_ARGUMENTS+=("--before=$TIME_BEFORE")
 fi
 
-if [[ "${#WIP_TAGS[@]}" -eq 0 ]]; then
-  printf 'No WIP tags are found\n'
+# with --after
+if [[ "$TIME_AFTER" != "" ]]; then
+  LS_COMMAND_ARGUMENTS+=("--after=$TIME_AFTER")
+fi
+
+# call ls.bash
+if WIP_TAGS_STRING=$("$LS_PATH" "${LS_COMMAND_ARGUMENTS[@]}"); then
+  readarray -t WIP_TAGS <<< "$WIP_TAGS_STRING"
+else
   exit 1
 fi
 
 # ---------------------------------------------------------------------------- #
-# Filter and delete tags
+# Delete tags (one liner)
 # ---------------------------------------------------------------------------- #
 
-for tag in "${WIP_TAGS[@]}"; do
-  
-  IFS='/' read -r -a tag_splitted <<< "$tag"
-  PREFIX=${tag_splitted[0]}
-  COMMIT_TIMESTAMP=${tag_splitted[1]}
-  COMMIT_HASH=${tag_splitted[2]}
-
-  # Filter with timestamp
-
-  if [[ $TIME_BEFORE ]]; then
-    if [[ $TIME_BEFORE < $COMMIT_TIMESTAMP ]]; then
-      continue
-    fi
-  fi
-
-  if [[ $TIME_AFTER ]]; then
-    if [[ $TIME_AFTER > $COMMIT_TIMESTAMP ]]; then
-      continue
-    fi
-  fi
-
-  # Delete
-  
-  if ! git tag -d "$tag"; then
-    printf 'Failed to delete the tag %s\n' "$tag"
+# Local
+if [[ "$REMOTE" == "" ]]; then
+  if ! git tag -d "${WIP_TAGS[@]}"; then
+    printf '[Error] Failed to delete the tag\n'
     exit 1
   fi
+  # # If there are other references left, warn that it won't be gc'ed because of them
+  # if [[ "$REMOTE" == "" && ( $(git --no-pager branch --contains "$COMMIT_HASH") != "" || $(git --no-pager tag --contains "$COMMIT_HASH") != "" ) ]]; then
+  #   printf '[Warn] Commit %s has other references left, thus it will not be garbage collected\n' "$COMMIT_HASH"
+  # fi
 
-  # If there are other references left, warn that it won't be gc'ed because of them
-
-  if [[ $(git --no-pager branch --contains "$COMMIT_HASH") != "" || $(git --no-pager tag --contains "$COMMIT_HASH") != "" ]]; then
-    printf '[Warn] Commit %s has other references left, thus it will not be garbage collected\n' "$COMMIT_HASH"
+# Remote
+else
+  WIP_TAGS_FILTERED_INTERPOLATED_STRING=$(printf 'tag %s ' "${WIP_TAGS[@]}")
+  REMOTE_DELETE_COMMAND="git push $REMOTE --delete $WIP_TAGS_FILTERED_INTERPOLATED_STRING"
+  if ! eval "$REMOTE_DELETE_COMMAND"; then
+    printf '[Error] Failed to delete the remote tag\n'
   fi
-
-done
+fi
 

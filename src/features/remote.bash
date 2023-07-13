@@ -1,58 +1,6 @@
 #!/usr/bin/env bash
 
 # ---------------------------------------------------------------------------- #
-# Parse arguments
-# ---------------------------------------------------------------------------- #
-
-VERBOSE=false
-PORCELAIN=false
-COMMAND=""
-
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    -v|--verbose)
-      VERBOSE=true
-      shift
-      ;;
-    --porcelain)
-      PORCELAIN=true
-      shift
-      ;;
-    --compare|--push|--fetch|--prune-local|--prune-remote|--prune-both)
-      if [[ "$COMMAND" == "" ]]; then
-        COMMAND="${1/--/}"
-      fi
-      shift
-      ;;
-    -*)
-      printf 'Illegal option %s\n' "$1"
-      exit 1
-      ;;
-    *)
-      if [[ "$1" != "" ]]; then
-        ARGS+=("$1")
-      fi
-      shift
-      ;;
-  esac
-done
-
-if [[ ${#ARGS[@]} -gt 1 ]]; then
-  printf 'Too many arguments, expected 1\n'
-  exit 1
-fi
-
-if [[ ${#ARGS[@]} -eq 0 ]]; then
-  printf 'Argument is required\n'
-  exit 1
-fi
-
-if [[ ${#ARGS[@]} -eq 1 ]]; then
-  REMOTE_NAME=${ARGS[0]}
-  shift
-fi
-
-# ---------------------------------------------------------------------------- #
 # Get path of the directory this script is included
 # ---------------------------------------------------------------------------- #
 
@@ -72,36 +20,91 @@ get_script_path () {
 }
 
 SCRIPT_PATH=$(get_script_path)
-COMPARE_REMOTE=$(readlink -f "$SCRIPT_PATH/compare-remote.bash")
 LS_PATH=$(readlink -f "$SCRIPT_PATH/ls.bash")
+FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 
 # ---------------------------------------------------------------------------- #
-# Get WIP commits that are on local but aren't on remote
+# Parse arguments
 # ---------------------------------------------------------------------------- #
-#
-# if COMPARE_REMOTE_RESULT_STRING=$("$COMPARE_REMOTE" "$REMOTE_NAME"); then
-#   readarray -t COMPARE_REMOTE_RESULT_ARRAY <<< "$COMPARE_REMOTE_RESULT_STRING"
-#   read -r -a UNIQUE_LOCAL <<< "${COMPARE_REMOTE_RESULT_ARRAY[0]}"
-#   read -r -a UNIQUE_REMOTE <<< "${COMPARE_REMOTE_RESULT_ARRAY[1]}"
-#   # read -r -a COMMON <<< "${COMPARE_REMOTE_RESULT_ARRAY[2]}"
-# else
-#   exit 1
-# fi
+
+VERBOSE=false
+PORCELAIN=false
+COMMAND=""
+ARGUMENTS=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -v|--verbose)
+      VERBOSE=true
+      shift
+      ;;
+    --porcelain)
+      PORCELAIN=true
+      shift
+      ;;
+    -*)
+      printf 'Illegal option %s\n' "$1"
+      exit 1
+      ;;
+    *)
+      if [[ "$1" != "" ]]; then
+        ARGUMENTS+=("$1")
+      fi
+      shift
+      ;;
+  esac
+done
+
+# Check if Required Arguments Exist
+if [[ ${#ARGUMENTS[@]} -lt 2 ]]; then
+  printf 'Too few arguments. Expected remote name and remote command\n'
+  printf 'Usage: git wip remote <remote name> <remote command>\n'
+  exit 1
+fi
+
+# Parse Required Arguments (Remote Name, Command)
+if [[ ${#ARGUMENTS[@]} -ge 2 ]]; then
+  REMOTE_NAME=${ARGUMENTS[0]}
+  COMMAND=${ARGUMENTS[1]}
+  if [[ ! "$COMMAND" =~ ^(compare|push|fetch|prune-local|prune-remote)$ ]]; then
+    printf 'Illegal command %s\n' "$COMMAND"
+    exit 1
+  fi
+fi
+
+# Parse Additional Arguments (Refnames)
+if [[ ${#ARGUMENTS[@]} -ge 3 ]]; then
+  if [[ "$COMMAND" =~ ^(push|fetch)$ ]]; then
+    printf 'Refnames are only valid with push and fetch command\n'
+    if [[ "$COMMAND" =~ ^prune-(local|remote)$ ]]; then
+      printf 'To delete specific WIP commits, use delete command instead\n'
+    fi
+    exit 1
+  fi
+  KEYWORD_LIST=("${ARGUMENTS[@]:2}")
+fi
 
 # ---------------------------------------------------------------------------- #
 # Compare remote WIP tags with local WIP tags
 # ---------------------------------------------------------------------------- #
 
-if REMOTE_WIP_TAGS_STRING=$("$LS_PATH" "--remote=$REMOTE_NAME" "--format=short"); then
-  readarray -t REMOTE_WIP_TAGS <<< "$REMOTE_WIP_TAGS_STRING"
-else
-  exit 1
+LS_ARGUMENTS_LOCAL=("--format=short")
+LS_ARGUMENTS_REMOTE=("--format=short" "--remote=$REMOTE_NAME")
+if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
+  LS_ARGUMENTS_LOCAL+=("${KEYWORD_LIST[@]}")
+  LS_ARGUMENTS_REMOTE+=("${KEYWORD_LIST[@]}")
 fi
 
-if LOCAL_WIP_TAGS_STRING=$("$LS_PATH" "--format=short"); then
+if REMOTE_WIP_TAGS_STRING=$(eval "$LS_PATH ${LS_ARGUMENTS_REMOTE[*]}"); then
+  readarray -t REMOTE_WIP_TAGS <<< "$REMOTE_WIP_TAGS_STRING"
+else
+  REMOTE_WIP_TAGS=()
+fi
+
+if LOCAL_WIP_TAGS_STRING=$(eval "$LS_PATH ${LS_ARGUMENTS_LOCAL[*]}"); then
   readarray -t LOCAL_WIP_TAGS <<< "$LOCAL_WIP_TAGS_STRING"
 else
-  exit 1
+  LOCAL_WIP_TAGS=()
 fi
 
 # echo "${REMOTE_WIP_TAGS[@]}"
@@ -130,7 +133,7 @@ UNIQUE_REMOTE=("${REMOTE_WIP_TAGS[@]}")
 COMMON_ITEMS=("${COMMON_ITEMS[@]}")
 
 # ---------------------------------------------------------------------------- #
-# Compare
+# Print Comparison Result
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "compare" ]]; then
@@ -165,6 +168,8 @@ if [[ "$COMMAND" == "compare" ]]; then
       fi
     fi
   fi
+
+  exit 0
 fi
 
 # ---------------------------------------------------------------------------- #
@@ -172,10 +177,12 @@ fi
 # ---------------------------------------------------------------------------- #
 
 if [[ "$COMMAND" == "push" ]]; then
+
   if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
     UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_LOCAL[@]}")
   else
-    printf 'Remote %s has all the WIP tags that are locally present\n' "$REMOTE_NAME"
+    printf 'Nothing to push\n'
+    exit 0
   fi
 
   PUSH_COMMAND="git push $REMOTE_NAME $UNIQUE_LOCAL_TAG_INTERPOLATED"
@@ -196,12 +203,13 @@ if [[ "$COMMAND" == "fetch" ]]; then
   if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
     UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
   else
-    printf 'Local repository has all the WIP tags that are present in the remote %s\n' "$REMOTE_NAME"
+    printf 'Nothing to fetch\n'
+    exit 0
   fi
 
   FETCH_COMMAND="git fetch $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
   if ! eval "$FETCH_COMMAND"; then
-    printf 'Failed while fetching WIP tags from %s\n' "$REMOTE_NAME"
+    printf 'Failed while fetching WIP tags to %s\n' "$REMOTE_NAME"
     exit 1
   fi
 
@@ -217,7 +225,8 @@ if [[ "$COMMAND" == "prune-local" ]]; then
   if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
     UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf '%s ' "${UNIQUE_LOCAL[@]}")
   else
-    printf 'Remote %s has no unique WIP tags that are not present in the local repository\n' "$REMOTE_NAME"
+    printf 'Nothing to prune in the local repository\n'
+    exit 0
   fi
 
   PRUNE_LOCAL_COMMAND="git tag -d $UNIQUE_LOCAL_TAG_INTERPOLATED"
@@ -238,7 +247,8 @@ if [[ "$COMMAND" == "prune-remote" ]]; then
   if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
     UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
   else
-    printf 'Local repository has no unique WIP tags that are not present in the remote %s\n' "$REMOTE_NAME"
+    printf 'Nothing to prune in the remote repository\n'
+    exit 0
   fi
 
   PRUNE_REMOTE_COMMAND="git push --delete $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
@@ -250,36 +260,3 @@ if [[ "$COMMAND" == "prune-remote" ]]; then
   exit 0
 fi
 
-# ---------------------------------------------------------------------------- #
-# Prune-Both
-# ---------------------------------------------------------------------------- #
-
-if [[ "$COMMAND" == "prune-both" ]]; then
-
-
-  if [[ "${#UNIQUE_LOCAL[@]}" -gt 0 ]]; then
-    UNIQUE_LOCAL_TAG_INTERPOLATED=$(printf '%s ' "${UNIQUE_LOCAL[@]}")
-  else
-    printf 'Remote %s has no unique WIP tags that are not present in the local repository\n' "$REMOTE_NAME"
-  fi
-
-  PRUNE_LOCAL_COMMAND="git tag -d $UNIQUE_LOCAL_TAG_INTERPOLATED"
-  if ! eval "$PRUNE_LOCAL_COMMAND"; then
-    printf 'Failed while deleting locally unique WIP tags\n'
-    exit 1
-  fi
-
-  if [[ "${#UNIQUE_REMOTE[@]}" -gt 0 ]]; then
-    UNIQUE_REMOTE_TAG_INTERPOLATED=$(printf 'tag %s ' "${UNIQUE_REMOTE[@]}")
-  else
-    printf 'Local repository has no unique WIP tags that are not present in the remote %s\n' "$REMOTE_NAME"
-  fi
-
-  PRUNE_REMOTE_COMMAND="git push --delete $REMOTE_NAME $UNIQUE_REMOTE_TAG_INTERPOLATED"
-  if ! eval "$PRUNE_REMOTE_COMMAND"; then
-    printf 'Failed while deleting WIP tags in %s\n' "$REMOTE_NAME"
-    exit 1
-  fi
-
-  exit 0
-fi

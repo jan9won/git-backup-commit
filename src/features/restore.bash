@@ -21,7 +21,6 @@ get_script_path () {
 
 SCRIPT_PATH=$(get_script_path)
 HELP_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
-FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 
 # ---------------------------------------------------------------------------- #
 # Parse arguments 
@@ -53,7 +52,7 @@ if [[ $# -eq 0 ]]; then
   exit 1
 fi
 
-KEY=$1
+KEYWORD=$1
 shift
 
 # ---------------------------------------------------------------------------- #
@@ -67,21 +66,25 @@ if git status --porcelain | grep -q '^.\{2\}'; then
 fi
 
 # ---------------------------------------------------------------------------- #
-# Resolve given KEY to TAG_NAME
+# Resolve given KEYWORD to TAG_NAME
 # ---------------------------------------------------------------------------- #
 
-$VERBOSE && printf 'Searching for the WIP commit with the give argument...'
+# Prepare arguments for ls.bash
+if [[ "$VERBOSE" == "true" ]]; then
+  LS_COMMAND_ARGUMENTS+=("--verbose")
+fi
 
-if ! TAG_NAME=$($FIND_WIP_COMMIT_WITH_KEYWORD "$KEY"); then
+LS_COMMAND_ARGUMENTS=("--format=short" "$KEYWORD")
+
+# call ls.bash
+if TAG_NAME=$("$LS_PATH" "${LS_COMMAND_ARGUMENTS[@]}"); then
+  IFS='/' read -r -a TAG_NAME_ARRAY <<< "$TAG_NAME"
+else
   exit 1
 fi
 
-IFS='/' read -r -a TAG_NAME_ARRAY <<< "$TAG_NAME"
-
 PREFIX=${TAG_NAME_ARRAY[0]}
 COMMIT_HASH=${TAG_NAME_ARRAY[2]}
-
-$VERBOSE && printf 'OK\n'
 
 # ---------------------------------------------------------------------------- #
 # restore from the commit

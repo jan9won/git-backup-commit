@@ -21,7 +21,6 @@ get_script_path () {
 
 SCRIPT_PATH=$(get_script_path)
 VERIFY_TIMESTAMP=$(readlink -f "$SCRIPT_PATH/../utils/verify-timestamp.bash")
-PREPARE_REMOTE=$(readlink -f "$SCRIPT_PATH/../utils/prepare-remote.bash")
 USAGE_PATH=$(readlink -f "$SCRIPT_PATH/usage.bash")
 FIND_WIP_COMMIT_WITH_KEYWORD=$(readlink -f "$SCRIPT_PATH/../utils/find-wip-commit-with-keyword.bash")
 
@@ -48,18 +47,8 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     --remote=*)
-
-      if [[ "$REMOTE" != "" ]];then
-        continue
-      fi
-
-      if [[ "$1" =~ ^--remote=(.{1,})$ ]]; then
-        REMOTE="${BASH_REMATCH[1]}"
-      else
-        printf 'Remote name is not given\n'
-        exit 1
-      fi
-
+      [[ "$1" =~ ^--remote=(.{1,})$ ]]
+      REMOTE="${BASH_REMATCH[1]}"
       shift
       ;;
 
@@ -96,15 +85,17 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     *)
-      KEYWORD_LIST+=("$1")
+      if [[ "$1" != "" ]]; then
+        KEYWORD_LIST+=("$1")
+      fi
       shift
       ;;
 
   esac
 done
 
-if [[ "$REMOTE" != "" && "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
-  printf 'Refname(s) cannot be queries when --remote option is set.\n'
+if [[ "$REMOTE" != "" && "$FORMAT" == "status" ]]; then
+  printf '[Error] option --status cannot be used with --remote. Please consider fetching them and read them locally.\n' 
   exit 1
 fi
 
@@ -115,37 +106,68 @@ fi
 PREFIX=$(git config --get jan9won.git-wip-commit.prefix)
 WIP_TAGS=()
 
+# Local
+
 if [[ "$REMOTE" == "" ]]; then
+
+  # With Keyword(s)
   if [[ "${#KEYWORD_LIST[@]}" -gt 0 ]]; then
     for keyword in "${KEYWORD_LIST[@]}"; do
       # Resolve given keyword to tag name 
-      $VERBOSE && printf 'Searching for the WIP commit with the give argument %s\n' "$keyword"
+      $VERBOSE && printf 'Searching for the WIP commit with the given arguments %s\n' "$keyword"
       if tag_name=$($FIND_WIP_COMMIT_WITH_KEYWORD "$keyword") ; then
         $VERBOSE && printf 'Found %s\n' "$tag_name"
         WIP_TAGS+=("$tag_name")
       else
-        printf '%s\n' "$tag_name"
+        printf 'Could not find WIP commit with keyword %s\n' "$keyword"
       fi
     done
+
+  # Without Keyword (All Local)
   else
     readarray -t WIP_TAGS < <(git tag --sort=refname | grep -E "^$PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40}$")
   fi
 fi
 
+# Remote
+
 if [[ "$REMOTE" != "" ]]; then
 
-  if ! "$PREPARE_REMOTE" "$REMOTE" "$($VERBOSE && printf -- '--verbose')" ; then
-    exit 1
-  fi
+  # All Remote with Prefix
+  $VERBOSE && printf 'Querying all remote tags prefixed with locally configured prefix %s\n' "$PREFIX"
+  readarray -t REMOTE_TAGS_WITH_PREFIX < <(git ls-remote "$REMOTE" refs/tags/"$PREFIX"/* | grep -v "\^{}")
+  for remote_object in "${REMOTE_TAGS_WITH_PREFIX[@]}"; do
 
-  readarray -t remote_tags_with_prefix < <(git ls-remote "$REMOTE" refs/tags/"$PREFIX"/* | grep -v "\^{}")
-  for remote_object in "${remote_tags_with_prefix[@]}"; do
-    if [[ "$remote_object" =~ refs/tags/($PREFIX/[0-9]{10,}/[a-zA-Z0-9]{40})$ ]]; then
+    # All Remote with WIP Tag Pattern 
+    if [[ "$remote_object" =~ refs/tags/($PREFIX/([0-9]{10,})/([a-zA-Z0-9]{40}))$ ]]; then
+
+      # Extract data from tag  
       remote_tag="${BASH_REMATCH[1]}"
-      WIP_TAGS+=("$remote_tag")
+      remote_tag_timestamp="${BASH_REMATCH[2]}"
+      remote_tag_full_hash="${BASH_REMATCH[3]}"
+
+      # Without Keywords (All Remote WIP Tags)
+      if [[ "${#KEYWORD_LIST[@]}" -eq 0 ]]; then
+        WIP_TAGS+=("$remote_tag")
+
+      # With Keywords
+      else
+        for keyword in "${KEYWORD_LIST[@]}"; do
+          
+          # Match Full Tag Name
+          if [[ "$keyword" == "$remote_tag" ]]; then
+            WIP_TAGS+=("$remote_tag")
+          fi
+
+          # Match Short/Long Commit Hash
+          keyword_hash_pattern="^$keyword\[a-z0-9\]\{0,33\}$"
+          if [[ "$remote_tag_full_hash" =~ $keyword_hash_pattern ]]; then
+            WIP_TAGS+=("$remote_tag")
+          fi
+        done
+      fi
     fi
   done
-
 fi
 
 if [[ "${#WIP_TAGS[@]}" -eq 0 ]]; then
@@ -186,7 +208,7 @@ for tag in "${WIP_TAGS[@]}"; do
     printf '%s\n' "$tag"
 
   elif [[ $FORMAT == "long" ]]; then
-    printf 'tag\t%s\ndate\t%s\nhash\t%s\n\n' "$tag" "$TIME_STRING" "${COMMIT_HASH:0:7}"
+    printf 'tag\t%s\ndate\t%s\nhash\t%s\n\n' "$tag" "$TIME_STRING" "$COMMIT_HASH"
 
   elif [[ $FORMAT == "status" ]]; then
     readarray -t committed_files < <(git show --name-status --pretty= "$COMMIT_HASH")
@@ -214,7 +236,7 @@ for tag in "${WIP_TAGS[@]}"; do
       file_list_string+=$'\n'
     done
 
-    printf 'name\t%s\ntime\t%s\n%s\n' "$tag" "$TIME_STRING" "$file_list_string"
+    printf 'name\t%s\ndate\t%s\nhash\t%s\n%s\n' "$tag" "$TIME_STRING" "$COMMIT_HASH" "$file_list_string"
   else
     printf 'Illegal value for --format option\n'
     exit 1

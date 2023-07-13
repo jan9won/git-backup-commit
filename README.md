@@ -46,6 +46,10 @@
         *   [`<command> is not a git command`](#command-is-not-a-git-command)
         *   [`permission denied`](#permission-denied)
 
+*   [For Contributors](#for-contributors)
+
+    *   [Script Dependency Layers](#script-dependency-layers)
+
 ## Introduction
 
 ### What is a "WIP commit"
@@ -275,3 +279,12 @@ In global `~/.gitconfig`, under `[alias]` section, edit `wip` variable name.
 2.  If not, run following command on `~/lib/git-wip-commit` and `~/bin`
 
     `chmod -R +x /path/to/directory`
+
+## For Contributors
+
+### Script Dependency Layers
+
+1.  `utils`
+2.  `features/ls`
+3.  `features/local`
+4.  `features/remote`
