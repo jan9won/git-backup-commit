@@ -8,8 +8,9 @@
 
 *   [Introduction](#introduction)
 
-    *   [What is a "WIP commit"](#what-is-a-wip-commit)
-    *   [Features](#features)
+    *   [Use Cases of This Library](#use-cases-of-this-library)
+    *   [WIP commit](#wip-commit)
+    *   [Working with WIP commit](#working-with-wip-commit)
     *   [Advantages Over Other Strategies](#advantages-over-other-strategies)
     *   [Limitations](#limitations)
 
@@ -52,41 +53,48 @@
 
 ## Introduction
 
-### What is a "WIP commit"
+### Use Cases of This Library
 
-*   A commit created to record work-in-progress changes
-*   Usage
-    *   Share uncommited changes over remote repository
-    *   Manage WIP commits in batch
+*   Share WIP status of your working/staging area over remote repository
+*   Create commits for backup purposes
+*   Restore both working/staging area from those backup commits
 
-### Features
+### WIP commit
 
-1.  Create a commit, yet preserve current state of repository
-    *   Immediately restore working & staging area
-    *   Delete branch used to create the commit, this has few advantages:
-        *   Commit won’t appear in daily commands (unless you explicitly include them)
-        *   Commit can be deleted without affecting any branch
-        *   Prevent you from creating new commit, merging and patching on WIP commit (it’s also prevented by git hooks)
+*   WIP commit
+    *   A commit that stores your work-in-progress changes
+    *   It doesn't have a branch or a parent commit. The advantages are:
+        *   Commit won’t appear in daily commands
+        *   Commit can easily be deleted without affecting any branch
+*   WIP tag
+    *   An annotated tag that is attached to every WIP tag
+    *   Tag name is formatted as `prefix/timestamp/commit-hash/`
+    *   Tag message stores information about stating area
 
-2.  Add a unique tag to the commit
-    *   Used to find, delete and restore from WIP commits
-    *   Used to push and fetch WIP commits on remotes
+### Working with WIP commit
+
+*   Creating WIP commit has little to no affect on your current working state
+    *   It doesn't change the current state of working and staging area
+    *   It doesn't change which commit you're checked out
+
+*   You can restore working/staging area from a WIP commit
+    *   This is particularly useful if you want to staging area
 
 ### Advantages Over Other Strategies
 
-1.  Adavantages over directly syncing files with `rsync`
-    *   Push/fetch workload is usually smaller
-    *   As your `.gitignore` file is respected, unexpected private file push is prevented
-
-2.  Advantages over `git-stash`
-    *   Stashes can't be directly pushed to the remote (not at least with well-defined behavior)
+1.  Advantages over `git-stash`
+    *   Stashes can't directly be pushed to the remote (not at least with well-defined behavior)
     *   Stashes are harder to be used as backup, as they’re not part of history
+
+2.  Adavantages over directly syncing project directory (e.g., `rsync`)
+    *   Push/fetch workload is smaller
+    *   As your gitignore is respected, unexpected file sharing is prevented
 
 ### Limitations
 
-1.  History won’t be 100% clean
-    *   It still creates extra commmits and tags
-    *   Log will show WIP commits with options like `git log --all` or `git log --tags`
+1.  Commit log and tag list won’t be 100% clean
+    *   Commit log will show branchless commits with options like `--all` or `--tags`
+    *   Tags list will always print WIP tags, but can filtered
 
 2.  Deletion relies on git's garbage collection
     *   Commands like `delete` or `delete-remote` only deletes WIP tags (which are created by this library)

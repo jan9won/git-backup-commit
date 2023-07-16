@@ -241,7 +241,6 @@ $VERBOSE && printf 'OK\n'
 
 COMMIT_HASH="$(git rev-parse HEAD)"
 COMMIT_TIMESTAMP=$(git show -s --format=%at "$COMMIT_HASH")
-TAG_NAME="$PREFIX/$COMMIT_TIMESTAMP/$COMMIT_HASH"
 TEMP_FILE_NAME="git-wip-commit-temp-$COMMIT_HASH-$COMMIT_TIMESTAMP"
 
 cleanup_procedure_create_tag(){
@@ -266,6 +265,14 @@ if ! printf 'This is a WIP tag created with git-wip-commit library\n\n%s' "$adde
   exit 1
 fi
 $VERBOSE && printf 'OK\n'
+
+$VERBOSE && printf 'Checking if the same tag exists...\n'
+TAG_NAME="$PREFIX/$COMMIT_TIMESTAMP/$COMMIT_HASH"
+if ! git tag --list "$TAG_NAME" | ( read -r tag; [[ $tag != "" ]] ); then
+  printf 'Tag already exists, please wait 1 second or make non-empty commit\n'
+  cleanup_procedure_create_tag
+  exit 1
+fi
 
 $VERBOSE && printf 'Creating a tag...'
 if ! git tag -a "$TAG_NAME" -F "$TEMP_FILE_NAME"; then
