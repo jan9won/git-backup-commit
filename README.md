@@ -9,82 +9,56 @@
 *   [Introduction](#introduction)
 
     *   [Use Cases of This Library](#use-cases-of-this-library)
-    *   [WIP commit](#wip-commit)
+    *   [Key Components](#key-components)
     *   [Working with WIP commit](#working-with-wip-commit)
-    *   [Advantages Over Other Strategies](#advantages-over-other-strategies)
+    *   [Advantages Over Other WIP Sharing Strategies](#advantages-over-other-wip-sharing-strategies)
     *   [Limitations](#limitations)
 
 *   [Getting Started](#getting-started)
 
     *   [Requirements](#requirements)
-    *   [Installation](#installation)
-
-*   [Configuration](#configuration)
-
-*   [Usage](#usage)
-
-    *   [Working Locally](#working-locally)
-
-        *   [Create](#create)
-        *   [List](#list)
-        *   [Delete](#delete)
-
-    *   [Working With Remote](#working-with-remote)
-
-        *   [List](#list-1)
-        *   [Push](#push)
-        *   [Fetch](#fetch)
-        *   [Delete](#delete-1)
-
-    *   [Manual Configuration](#manual-configuration)
-
-        *   [Tag Prefix](#tag-prefix)
-        *   [Git Alias](#git-alias)
-
+    *   [Installation and Preparation](#installation-and-preparation)
+    *   [Usage](#usage)
+    *   [Feature Description](#feature-description)
     *   [Troubleshooting](#troubleshooting)
-
-        *   [`command not found: <command>`](#command-not-found-command)
-        *   [`<command> is not a git command`](#command-is-not-a-git-command)
-        *   [`permission denied`](#permission-denied)
-
-*   [For Contributors](#for-contributors)
-
-    *   [Script Dependency Layers](#script-dependency-layers)
 
 ## Introduction
 
 ### Use Cases of This Library
 
-*   Share WIP status of your working/staging area over remote repository
-*   Create commits for backup purposes
-*   Restore both working/staging area from those backup commits
+*   Share current status of working/staging area over remote repository
+*   Create commits for backup purposes, and restore from them later
 
-### WIP commit
+### Key Components
 
 *   WIP commit
-    *   A commit that stores your work-in-progress changes
+    *   A commit that stores work-in-progress changes
     *   It doesn't have a branch or a parent commit. The advantages are:
         *   Commit won’t appear in daily commands
-        *   Commit can easily be deleted without affecting any branch
+        *   Commit can be deleted without affecting any branch
+
 *   WIP tag
     *   An annotated tag that is attached to every WIP tag
-    *   Tag name is formatted as `prefix/timestamp/commit-hash/`
-    *   Tag message stores information about stating area
+    *   It stores following metadata:
+        *   Tag name is formatted as `prefix/timestamp/commit-hash/`
+        *   Tag message stores a list of file which were staged at the time of creation
 
 ### Working with WIP commit
 
 *   Creating WIP commit has little to no affect on your current working state
     *   It doesn't change the current state of working and staging area
-    *   It doesn't change which commit you're checked out
+    *   It creates commit and checks out the commit you've checked out before
+
+*   Deleting WIP commit doesn't affect repository
 
 *   You can restore working/staging area from a WIP commit
-    *   This is particularly useful if you want to staging area
 
-### Advantages Over Other Strategies
+*   You can push/fetch/compare/prune WIP commits on remote repository
+
+### Advantages Over Other WIP Sharing Strategies
 
 1.  Advantages over `git-stash`
     *   Stashes can't directly be pushed to the remote (not at least with well-defined behavior)
-    *   Stashes are harder to be used as backup, as they’re not part of history
 
 2.  Adavantages over directly syncing project directory (e.g., `rsync`)
     *   Push/fetch workload is smaller
@@ -93,21 +67,15 @@
 ### Limitations
 
 1.  Commit log and tag list won’t be 100% clean
-    *   Commit log will show branchless commits with options like `--all` or `--tags`
+    *   Commit log will show WIP commits with options like `--all` or `--tags`
     *   Tags list will always print WIP tags, but can filtered
 
 2.  Deletion relies on git's garbage collection
-    *   Commands like `delete` or `delete-remote` only deletes WIP tags (which are created by this library)
-    *   If there are other references left on the WIP commit, (which shouldn't in normal use cases), the commit won't be deleted
-    *   Also, commits may not get deleted immediately after deletion commands.
+    *   If there are other references other than WIP tag left on the WIP commit, (which shouldn't be in normal use cases), the commit won't be deleted
+    *   Commits may not get deleted immediately after deletion commands (until next gc phase).
 
-3.  It’s not resilient to destructive commands
-    *   If you accidentally delete WIP commit’s tag, the commit becomes a dangling commit, and will be deleted in the next garbage collection routine
-
-4.  WIP Commits are not 100% private
-    *   They can still be pushed to any remote if specified explicitly
-    *   E.g., `git push <remote> <tag_name>`
-    *   Though it isn't likely to happen, as tag names are long and complex
+3.  WIP commits are not resilient to destructive commands
+    *   If you accidentally delete WIP tags, the commit becomes a dangling commit, and will be deleted in the next garbage collection routine
 
 ## Getting Started
 
@@ -120,7 +88,7 @@ This is a collection of bash scripts that uses native git commands.
 *   curl or wget
 *   tar
 
-### Installation
+### Installation and Preparation
 
 1.  Download and run install script
 
@@ -128,171 +96,57 @@ This is a collection of bash scripts that uses native git commands.
     curl -o- https://raw.githubusercontent.com/jan9won/git-wip-commit/main/install.sh | bash
     ```
 
-## Configuration
+2.  Prepare remote repository for remote features
 
-1.  Configure tag prefix
-    *   Purpose:    A string prefixed to the tags that marks backup commits
-    *   Command:    `git backup config prefix <prefix>`
-2.  Prepare remote repository
-    *   Some features that works with remote repository (e.g., push, fetch) requires remote repository name
+    ```bash
+    git remote add <remote-name> <remote-path>
+    ```
 
-## Usage
+### Usage
 
-(Use `--help` flag to see manual on each subcommand)
+1.  Entry command
 
-### Working Locally
+    ```bash
+    git wip <command>
+    ```
 
-#### Create
+2.  Use `help` command to see manual for each level of command. For example:
 
-⚠️ You can't create WIP commit on another WIP commit. (Prevented with git pre-commit hook)
+    ```bash
+    git wip help          # top level
+    git wip create help   # for create command
+    git wip remote help   # for remote commands
+    ```
 
-⚠️ You can't create WIP commit without changes to commit
+### Feature Description
 
-    git wip create [-e | --empty]
+1.  Working Locally
 
-*   Options
+    *   `git wip create`  : create a new WIP commit attached to current commit
+    *   `git wip ls`      : list WIP commits
+    *   `git wip delete`  : delete WIP commits
+    *   `git wip restore` : restore current working/staging area with WIP commit
+    *   `git wip config`  : configure this library
 
-    *   `-e | --empty` : create WIP commit without any changes (same as currently checked out commit)
+2.  Working Remotely
 
-*   Tags are created in following format
-
-    *   `<tag prefix name>-<commit hash>-<creation time in UTC epoch>`
-    *   E.g., `wip-1683533327`
-
-#### List
-
-    git wip ls [--author <author name>] [--after <UTC epoch>]
-
-Options
-
-*   `--author <author name>` : list all local WIP commits created by `author name`
-*   `--after <UTC epoch>` : list all local WIP commits created after provided `<UTC epoch` time
-
-#### Delete
-
-⚠️ Do not delete tags explicitly
-
-    git wip delete [<tag> | --all] [--author <author name>] [--after <UTC epoch>]
-
-Options
-
-*   `<tag>` : delete specific WIP commit with tag name
-*   `--all` : delete all WIP commits
-*   `--author <author name>` : delete all local WIP commits created by `author name`
-*   `--after <UTC epoch>` : delete all local WIP commits created after provided `UTC epoch` time
-
-1.  Restore working space and staging area from WIP commit
-
-⚠️ This may introduce conflict with uncommited files, stash them or clean workspace before running this command.
-
-    git wip restore <tag>
-
-### Working With Remote
-
-⚠️ Before running remote-related commands, configure remote through git.
-
-#### List
-
-    git wip remote ls <remote> [--author <author name>] [--after <UTC epoch>]
-
-Options
-
-*   `--author <author name>` : list all remote WIP commits created by `author name`
-*   `--after <UTC epoch>` : list all remote WIP commits created after provided `<UTC epoch` time
-
-#### Push
-
-Push all local WIP commits that doesn’t exists on the remote
-
-    git wip remote push <remote>
-
-#### Fetch
-
-Fetch all remote WIP commits that doesn’t exists in local repository
-
-    git wip remote fetch <remote>
-
-#### Delete
-
-Delete remote WIP commits
-
-    git wip remote delete <remote> [--missing-on-remote | --missing-on-local | <tag> | --all] [--author <author name>] [--after <UTC epoch>]
-
-*   Options
-    *   `–-missing-on-remote` (default) : delete all remote WIP commits that doesn’t exists on the local repository, but exists in the remote
-    *   `–-missing-on-local` : delete all local WIP commits that doesn’t exists on the remote, but exists in the local repository
-    *   `<tag>` : delete specific remote WIP commit with tag name
-    *   `--all` : delete all WIP commits in the remote
-    *   `--author <author name>` : delete all remote WIP commits created by `author name`
-    *   `--after <UTC epoch>` : delete all remote WIP commits created after provided `UTC epoch` time
-
-### Manual Configuration
-
-You can manually configure informations that install script prompted you at the first installation.
-
-Configuration is stored in repository's local \`\` file's section.
-
-#### Tag Prefix
-
-It’s prefixed to every WIP commit’s unique tag.
-
-In local `.git/config`, under `[jan9won.git-wip-commit]` section, edit `prefix` variable’s value.
-
-    [git-wip-commit]
-    	...
-    	tag-prefix = <tag prefix name>
-
-#### Git Alias
-
-In global `~/.gitconfig`, under `[alias]` section, edit `wip` variable name.
-
-    [alias]
-    	...
-    	wip = !git-wip-commit
+    *   `git wip remote <remote> push`          : push WIP commits that doesn't exist on remote
+    *   `git wip remote <remote> fetch`         : fetch WIP commits that doesn't exist on local
+    *   `git wip remote <remote> prune-local`   : delete local commits that doesn't exist on remote
+    *   `git wip remote <remote> prune-remote`  : delete remote commits that doesn't exist on local
 
 ### Troubleshooting
 
-#### `command not found: <command>`
+1.  Command not found
 
-*   Command is `git-wip-commit`
+    1.  Check if your bash is over 4.3
+    2.  Check if your local binary path (`~/.local/bin`) is added to `PATH`. If not, add it
+    3.  If problem persists, delete `~/.local/lib/git-wip-commit` and `~/.local/bin/git-wip-commit` then reinstall.
 
-    1.  Look in your shell's startup script
+2.  `<command> is not a git command`
 
-        Check if your local binary path (`~/bin`) is added to `PATH`. If not, add it
+    1.  Update git over version 1.9
 
-    2.  Look in your library path (`~/lib/git-wip-commit`)
+3.  `permission denied`
 
-        Check if libary contents exist and not corrupted. If not, reinstall.
-
-    3.  Look in your binary path (`~/bin`)
-
-        Check if symlink named `git-wip-commit` exists and points to `~/lib/git-wip-commit/entry.sh`. If not, reinstall.
-
-    4.  If problem persists
-
-        Delete `~/lib/git-wip-commit` and `~/bin/git-wip-commit` and reinstall.
-
-*   Other commands
-
-    1.  Update bash over version 4.3
-
-#### `<command> is not a git command`
-
-1.  Update git over version 1.9
-
-#### `permission denied`
-
-1.  Check if your binary and library path's permission allows execution
-
-2.  If not, run following command on `~/lib/git-wip-commit` and `~/bin`
-
-    `chmod -R +x /path/to/directory`
-
-## For Contributors
-
-### Script Dependency Layers
-
-1.  `utils`
-2.  `features/ls`
-3.  `features/local`
-4.  `features/remote`
+    1.  Check if your binary and library path's permission allows execution. If now, allow them.

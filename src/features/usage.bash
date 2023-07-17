@@ -9,11 +9,11 @@ usage           git wip [help] <command>
 
 <command>
 create          Create new WIP commit, restore working and staging area
+ls              List all WIP commits
 delete          Delete given WIP commit
 restore         Restore working directory from given WIP commit
-ls              List all WIP commits
-push            Push WIP commits to remote
-fetch           Fetch WIP commits to remote
+remote          A set of remote commands and featured under this command
+config          Configure this library
 "
 
 # ---------------------------------------------------------------------------- #
@@ -23,9 +23,13 @@ fetch           Fetch WIP commits to remote
 CREATE="
 Usage           git wip create [help] [options]
 
+Description     Create WIP commit on the top of the commit you're currentl
+                checked out. (You can't create WIP commit on another WIP commit)
+
 [options]
 
--f|--force      Create even if there's nothing to commit.
+-f|--force      Create empty WIP commit when there's nothing to commit.
+-v|--verbose    Print each steps of this feature
 "
 # ---------------------------------------------------------------------------- #
 # ls
@@ -34,9 +38,13 @@ Usage           git wip create [help] [options]
 LS="
 Usage           git wip ls [help] [options]
 
-Description     List WIP tags in the local repository
+Description     List WIP commits in the local repository
 
 [options]
+
+--remote=<remote-name>
+        
+                Query remote repository rather than the local one.
 
 --<before|after>=<timestamp>
 
@@ -63,6 +71,8 @@ Description     List WIP tags in the local repository
                 Print raw tag name, locale-formatted time string and full
                 list of committed files (result of \`git show --name-status\`).
                 The files that have added by this library is marked with \"+\".
+
+-v|--verbose    Print each steps of this feature
 "
 
 # ---------------------------------------------------------------------------- #
@@ -95,6 +105,7 @@ Available key-value pairs
 
 --get <key>     Show git config named \"jan9won.git-wip-commit.<key>\"
 --get-all       Show all configs set under the section \"jan9won.git-wip-commit\"
+-v|--verbose    Print each steps of this feature
 "
 
 # ---------------------------------------------------------------------------- #
@@ -111,7 +122,7 @@ usage           git wip restore [options] <refname>
 
 [options]
 
--v|--verbose    Print process
+-v|--verbose    Print each steps of this feature
 "
 
 # ---------------------------------------------------------------------------- #
@@ -128,8 +139,6 @@ usage           git wip delete [options] [<refname>]
 
 [options]
 
--v|--verbose    Print process
-
 -a|--all        Delete all the WIP commits.
                 Can't be used with --before, --after or <refname>(s)
 
@@ -142,6 +151,46 @@ usage           git wip delete [options] [<refname>]
 
                 <timestamp> is a unix timestamp. You can use commands like
                 \`date -d \"<datetime_string>\" +%s\` to get it.
+
+-v|--verbose    Print each steps of this feature
+"
+
+# ---------------------------------------------------------------------------- #
+# Remote
+# ---------------------------------------------------------------------------- #
+
+REMOTE="
+usage           git wip remote <remote> <command> [options]
+
+<remote>        Name of remote configured in your local repository
+
+<command>
+
+compare         Compare local and remote repository, print which WIP commits are
+                unique to local/remote repository, and which are common.
+
+push            Push local WIP commits that are not on the remote repository,
+                but on the local repository.
+
+fetch           Fetch remote WIP commits that are not on the local repository,
+                but on the remote repository.
+
+prune-local     Delete local WIP commits that are on the local repository, but
+                not on the remote repository.
+
+prune-remote    Delete remote WIP commits that are on the remote repository, but
+                not on the local repository.
+
+[options]
+
+-v|--verbose    Print each steps of this feature
+
+--porcelain     Used with \`compare\` command, only print newline-separated
+                lists of WIP tag names without list titles. The format is:
+                
+                \`<a list of locally unique tags>\`
+                \`<a list of remotely unique tags>\`
+                \`<a list of common tags>\`
 "
 
 # ---------------------------------------------------------------------------- #
@@ -167,6 +216,10 @@ case $1 in
     ;;
   delete)
     printf '%s' "$DELETE"
+    exit 0;
+    ;;
+  remote)
+    pritnf '%s' "$REMOTE"
     exit 0;
     ;;
 esac
